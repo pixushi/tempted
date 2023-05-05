@@ -17,7 +17,7 @@ You can install the development version of tempted from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("pixushi/tempted)
+devtools::install_github("pixushi/tempted")
 ```
 
 To use our method, please cite the following paper:
