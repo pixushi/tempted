@@ -3,7 +3,7 @@
     "path": "~/Library/CloudStorage/Box-Box/0-ftsvd/tempted/README.Rmd",
     "project_path": "README.Rmd",
     "type": "r_markdown",
-    "hash": "0",
+    "hash": "3839260080",
     "contents": "",
     "dirty": false,
     "created": 1683178313209.0,
@@ -12,15 +12,20 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "287,53",
-        "scrollLine": "282"
+        "cursorPosition": "81,240",
+        "scrollLine": "80",
+        "rmdVisualMode": "false",
+        "rmdVisualWrapConfigured": "true",
+        "docOutlineVisible": "1",
+        "rmdVisualModeLocation": "19992:3699",
+        "rmdVisualCollapsedChunks": ""
     },
     "folds": "",
-    "lastKnownWriteTime": 1683204032,
+    "lastKnownWriteTime": 1683310691,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1683204032689,
+    "last_content_update": 1683310691480,
     "read_only": false,
     "read_only_alternatives": []
 }

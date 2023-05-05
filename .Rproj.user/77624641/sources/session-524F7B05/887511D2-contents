@@ -826,6 +826,7 @@ ratio_feature <- function(res_tempted, datlist,
 #' This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using individual components.}
 #' \item{accum.r.square}{Variance explained by the first few components accumulated.
 #' This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using the first few components.}
+#' \item{do_ratio}{Whether to calculate the log ratio of features.}
 #' \item{metafeature.ratio}{The log ratio abundance of the top over bottom ranking features.
 #' It is a data.frame with five columns: "value" for the log ratio values,
 #' "subID" for the subject ID, and "timepoint" for the time points,
@@ -850,7 +851,8 @@ ratio_feature <- function(res_tempted, datlist,
 #'                              threshold=1,
 #'                              transform="none",
 #'                              r=2,
-#'                              smooth=1e-5)
+#'                              smooth=1e-5,
+#'                              do_ratio=FALSE)
 #'
 #' # for count data that will have pseudo_count added and clr transformed
 #'
@@ -861,7 +863,9 @@ ratio_feature <- function(res_tempted, datlist,
 #'                          transform="clr",
 #'                          pseudo_count=0.5,
 #'                          r=2,
-#'                          smooth=1e-5)
+#'                          smooth=1e-5,
+#'                          pct.ratio=0.1,
+#'                          pct.aggregate=1)
 #'
 #' # for proportional data that will have pseudo_count added and clr transformed
 #'
@@ -872,7 +876,9 @@ ratio_feature <- function(res_tempted, datlist,
 #'                               transform="clr",
 #'                               pseudo_count=NULL,
 #'                               r=2,
-#'                               smooth=1e-5)
+#'                               smooth=1e-5,
+#'                               pct.ratio=0.1,
+#'                               pct.aggregate=1)
 #'
 #' # plot the temporal loading and subject trajectories grouped by delivery mode
 #'
@@ -887,9 +893,8 @@ tempted_all <- function(feature_table, time_point, subjectID,
                         threshold=0.95, pseudo_count=NULL, transform="clr",
                         r = 3, smooth=1e-6,
                         interval = NULL, resolution = 51,
-                        maxiter=20, epsilon=1e-4,
-                        r.svd=1,
-                        pct.ratio=0.05, absolute=FALSE,
+                        maxiter=20, epsilon=1e-4, r.svd=1,
+                        do_ratio=TRUE, pct.ratio=0.05, absolute=FALSE,
                         pct.aggregate=1, contrast=NULL){
   datlist <- format_tempted(feature_table=feature_table, time_point=time_point, subjectID=subjectID,
                             threshold=threshold, pseudo_count=pseudo_count, transform=transform)
@@ -899,7 +904,8 @@ tempted_all <- function(feature_table, time_point, subjectID,
   res_tempted <- tempted(datlist=mean_svd$datlist, r = r, smooth=smooth,
                          interval = interval, resolution = resolution,
                          maxiter=maxiter, epsilon=epsilon)
-  res_ratio <- ratio_feature(res_tempted=res_tempted, datlist=datlist_raw,
+  if (do_ratio)
+    res_ratio <- ratio_feature(res_tempted=res_tempted, datlist=datlist_raw,
                              pct=pct.ratio, absolute=absolute, contrast=contrast)
   res_aggfeat <- aggregate_feature(res_tempted=res_tempted, mean_svd=mean_svd, datlist=datlist,
                                    pct=pct.aggregate, contrast=contrast)
@@ -907,9 +913,11 @@ tempted_all <- function(feature_table, time_point, subjectID,
   res_all$datlist_raw <- datlist_raw
   res_all$datlist <- datlist
   res_all <- append(res_all, res_tempted)
-  res_all$metafeature.ratio <- res_ratio$metafeature.ratio
-  res_all$toppct.ratio <- res_ratio$toppct
-  res_all$bottompct.ratio <- res_ratio$toppct
+  if (do_ratio){
+    res_all$metafeature.ratio <- res_ratio$metafeature.ratio
+    res_all$toppct.ratio <- res_ratio$toppct
+    res_all$bottompct.ratio <- res_ratio$toppct
+  }
   res_all$metafeature.aggregate <- res_aggfeat$metafeature.aggregate
   res_all$toppct.aggregate <- res_aggfeat$toppct
   res_all$contrast <- contrast
@@ -1055,8 +1063,8 @@ plot_time_loading <- function(res, r=NULL, ...){
 
 
 #' Meta data table from the ECAM data
-#' @format A data.frame with rows matching with data.frame \code{count_table} and \code{processed_table}
-#' and three variables:
+#' @format A data.frame with rows representing samples and matching with data.frame \code{count_table} and \code{processed_table}
+#' and three columns:
 #' \describe{
 #' \item{studyid}{character denoting the subject ID of the infants.}
 #' \item{delivery}{character denoting the delivery mode of the infants.}
@@ -1068,7 +1076,7 @@ plot_time_loading <- function(res, r=NULL, ...){
 
 
 #' OTU read count table from the ECAM data
-#' @format A data.frame with rows matching with data.frame \code{meta_table}
+#' @format A data.frame with rows representing samples and matching with data.frame \code{meta_table}
 #' and columns representing microbial features (i.e. OTUs). Each entry is a read count.
 #' @source Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
 #' @md
@@ -1076,7 +1084,7 @@ plot_time_loading <- function(res, r=NULL, ...){
 
 
 #' Central-log-ratio (clr) transformed OTU table from the ECAM data
-#' @format A data.frame with rows matching with data.frame \code{meta_table}
+#' @format A data.frame with rows representing samples and matching with data.frame \code{meta_table}
 #' and columns representing microbial features (i.e. OTUs).
 #' Entries do not need to be transformed, and will be directly used by \code{tempted}.
 #' This data.frame is used to illustrate how \code{tempted} can be used for
