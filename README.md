@@ -1,15 +1,6 @@
 TEMPTED Vignette
 ================
 
-# tempted
-
-<!-- badges: start -->
-<!-- badges: end -->
-
-The goal of tempted is to perform dimensionality reduction for
-multivariate longitudinal data, with a special attention to longitudinal
-mirobiome studies.
-
 ### Installation
 
 You can install the development version of tempted from
@@ -66,6 +57,18 @@ table(rownames(count_table)==rownames(meta_table))
 #>  852
 metauni <- unique(meta_table[,c('studyid', 'delivery')])
 ```
+
+### Introduction of TEMPTED
+
+The goal of tempted is to perform dimensionality reduction for
+multivariate longitudinal data, with a special attention to longitudinal
+mirobiome studies. This document is split into four sections:
+
+1.  Run TEMPTED for Microbiome Count Data (Straightforward Way)
+2.  Run TEMPTED for Microbiome Compositional Data (Straightforward Way)
+3.  Run TEMPTED for General Form of Multivariate Longitudinal Data
+    (Straightforward Way)
+4.  Run TEMPTED in Customized Way
 
 ### Run TEMPTED for Microbiome Count Data (Straightforward Way)
 
