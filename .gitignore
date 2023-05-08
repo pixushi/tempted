@@ -2,3 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
+.Buildignore
+.gitignore
+.DS_Store
