@@ -5,7 +5,7 @@
 \alias{processed_table}
 \title{Central-log-ratio (clr) transformed OTU table from the ECAM data}
 \format{
-A data.frame with rows matching with data.frame \code{meta_table}
+A data.frame with rows representing samples and matching with data.frame \code{meta_table}
 and columns representing microbial features (i.e. OTUs).
 Entries do not need to be transformed, and will be directly used by \code{tempted}.
 This data.frame is used to illustrate how \code{tempted} can be used for

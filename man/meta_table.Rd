@@ -5,8 +5,8 @@
 \alias{meta_table}
 \title{Meta data table from the ECAM data}
 \format{
-A data.frame with rows matching with data.frame \code{count_table} and \code{processed_table}
-and three variables:
+A data.frame with rows representing samples and matching with data.frame \code{count_table} and \code{processed_table}
+and three columns:
 \describe{
 \item{studyid}{character denoting the subject ID of the infants.}
 \item{delivery}{character denoting the delivery mode of the infants.}

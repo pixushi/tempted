@@ -22,22 +22,22 @@ library(np)
 #' @param maxiter Maximum number of iteration. Default is 20.
 #' @param epsilon Convergence criteria for difference between iterations. Default is 1e-4.
 #' @return The estimations of the loadings.
-#' \item{A.hat}{Subject loading, a subject by r matrix.}
-#' \item{B.hat}{Feature loading, a feature by r matrix.}
-#' \item{Phi.hat}{Temporal loading function, a resolution by r matrix.}
-#' \item{time.Phi}{The time points where the temporal loading function is evaluted.}
-#' \item{Lambda}{Eigen value, a length r vector.}
-#' \item{r.square}{Variance explained by each component.
-#' This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using individual components.}
-#' \item{accum.r.square}{Variance explained by the first few components accumulated.
-#' This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using the first few components.}
+#' \describe{
+#'   \item{A_hat}{Subject loading, a subject by r matrix.}
+#'   \item{B_hat}{Feature loading, a feature by r matrix.}
+#'   \item{Phi_hat}{Temporal loading function, a resolution by r matrix.}
+#'   \item{time_Phi}{The time points where the temporal loading function is evaluated.}
+#'   \item{Lambda}{Eigen value, a length r vector.}
+#'   \item{r_square}{Variance explained by each component. This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using individual components.}
+#'   \item{accum_r_square}{Variance explained by the first few components accumulated. This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using the first few components.}
+#' }
 #' @examples
 #' # for count data from longitudinal microbiome studies
 #'
 #' datlist <- format_tempted(count_table,
 #'                           meta_table$day_of_life,
 #'                           meta_table$studyid,
-#'                           pseudo_count=0.5,
+#'                           pseudo=0.5,
 #'                           transform="clr")
 #'
 #' mean_svd <- svd_centralize(datlist, r=1)
@@ -49,7 +49,7 @@ library(np)
 #' datlist <- format_tempted(processed_table,
 #'                           meta_table$day_of_life,
 #'                           meta_table$studyid,
-#'                           pseudo_count=NULL,
+#'                           pseudo=NULL,
 #'                           transform="none")
 #'
 #' mean_svd <- svd_centralize(datlist, r=1)
@@ -64,6 +64,20 @@ library(np)
 tempted <- function(datlist, r = 3, smooth=1e-6,
                     interval = NULL, resolution = 101,
                     maxiter=20, epsilon=1e-4){
+  # a function to iteratively update phi
+  freg_rkhs <- function(Ly, a_hat, ind_vec, Kmat, Kmat_output, smooth=1e-8){
+    A <- Kmat
+    for (i in 1:length(Ly)){
+      A[ind_vec==i,] <- A[ind_vec==i,]*a_hat[i]^2
+    }
+    cvec <- unlist(Ly)
+
+    A_temp <- A + smooth*diag(ncol(A))
+    beta <- solve(A_temp)%*%cvec
+
+    phi_est <- Kmat_output %*% beta
+    return(phi_est)
+  }
   n <- length(datlist)
   p <- nrow(datlist[[1]])-1
 
@@ -80,19 +94,19 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
 
 
   # Calculate range.
-  timestamps.all <- do.call(c,lapply(datlist, FUN=function(u){u[1,]}))
+  timestamps_all <- do.call(c,lapply(datlist, FUN=function(u){u[1,]}))
 
-  timestamps.all <- sort(unique(timestamps.all))
+  timestamps_all <- sort(unique(timestamps_all))
   if (is.null(interval)){
-    interval <- c(timestamps.all[1], timestamps.all[length(timestamps.all)])
+    interval <- c(timestamps_all[1], timestamps_all[length(timestamps_all)])
   }
 
   # rescale the time to 0-1.
-  input.time.range <- c(timestamps.all[1], timestamps.all[length(timestamps.all)])
+  input_time_range <- c(timestamps_all[1], timestamps_all[length(timestamps_all)])
   for (i in 1:n){
-    datlist[[i]][1,] <- (datlist[[i]][1,] - input.time.range[1]) / (input.time.range[2] - input.time.range[1])
+    datlist[[i]][1,] <- (datlist[[i]][1,] - input_time_range[1]) / (input_time_range[2] - input_time_range[1])
   }
-  interval <- (interval - input.time.range[1]) / (input.time.range[2] - input.time.range[1])
+  interval <- (interval - input_time_range[1]) / (input_time_range[2] - input_time_range[1])
 
   res <- NULL
   Lambda <- rep(0, r)
@@ -131,16 +145,16 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
     print(sprintf("Calculate the %dth Component", s))
 
     # intialization of b
-    data.unfold = NULL
+    data_unfold = NULL
     y <- NULL
     for (i in 1:n){
-      data.unfold = cbind(data.unfold, datlist[[i]][2:(p+1),])
+      data_unfold = cbind(data_unfold, datlist[[i]][2:(p+1),])
       y <- c(y, as.vector(t(datlist[[i]][2:(p+1),tipos[[i]]])))
     }
-    b.initials <- svd(data.unfold, nu=r, nv=r)$u
-    b.hat <- b.initials[,1]
+    b.initials <- svd(data_unfold, nu=r, nv=r)$u
+    b_hat <- b.initials[,1]
     # initialization of a
-    a.hat <- rep(1,n)/sqrt(n)
+    a_hat <- rep(1,n)/sqrt(n)
 
     # iteratively update a,b,phi
     t <- 0
@@ -149,34 +163,34 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
       # update phi:
       Ly <- list()
       for (i in 1:n){
-        Ly <- c(Ly, list(a.hat[i]*as.numeric(b.hat%*%datlist[[i]][2:(p+1),])))
+        Ly <- c(Ly, list(a_hat[i]*as.numeric(b_hat%*%datlist[[i]][2:(p+1),])))
       }
-      phi.hat <- freg_rkhs(Ly, a.hat, ind_vec, Kmat, Kmat_output, smooth=smooth)
-      phi.hat <- phi.hat / sqrt(sum(phi.hat^2))
+      phi_hat <- freg_rkhs(Ly, a_hat, ind_vec, Kmat, Kmat_output, smooth=smooth)
+      phi_hat <- phi_hat / sqrt(sum(phi_hat^2))
 
       # update a:
-      a.tilde <- rep(0,n)
+      a_tilde <- rep(0,n)
       for (i in 1:n){
-        t.temp <- tipos[[i]]
-        a.tilde[i] <- b.hat %*% datlist[[i]][2:(p+1),t.temp] %*% phi.hat[ti[[i]][t.temp]]
-        a.tilde[i] <- a.tilde[i] / sum((phi.hat[ti[[i]][t.temp]])^2)
+        t_temp <- tipos[[i]]
+        a_tilde[i] <- b_hat %*% datlist[[i]][2:(p+1),t_temp] %*% phi_hat[ti[[i]][t_temp]]
+        a_tilde[i] <- a_tilde[i] / sum((phi_hat[ti[[i]][t_temp]])^2)
       }
-      a.new <- a.tilde / sqrt(sum(a.tilde^2))
-      dif <- sum((a.hat - a.new)^2)
-      a.hat <- a.new
+      a.new <- a_tilde / sqrt(sum(a_tilde^2))
+      dif <- sum((a_hat - a.new)^2)
+      a_hat <- a.new
 
       # update b:
-      temp.num <- matrix(0,p,n)
-      temp.denom <- rep(0,n)
+      temp_num <- matrix(0,p,n)
+      temp_denom <- rep(0,n)
       for (i in 1:n){
-        t.temp <- tipos[[i]]
-        temp.num[,i] <- datlist[[i]][2:(p+1),t.temp] %*% phi.hat[ti[[i]][t.temp]]
-        temp.denom[i] <-sum((phi.hat[ti[[i]][t.temp]])^2)
+        t_temp <- tipos[[i]]
+        temp_num[,i] <- datlist[[i]][2:(p+1),t_temp] %*% phi_hat[ti[[i]][t_temp]]
+        temp_denom[i] <-sum((phi_hat[ti[[i]][t_temp]])^2)
       }
-      b.tilde <- as.numeric(temp.num%*%a.hat) / as.numeric(temp.denom%*%(a.hat^2))
-      b.new <- b.tilde / sqrt(sum(b.tilde^2))
-      dif <- max(dif, sum((b.hat - b.new)^2))
-      b.hat <- b.new
+      b_tilde <- as.numeric(temp_num%*%a_hat) / as.numeric(temp_denom%*%(a_hat^2))
+      b.new <- b_tilde / sqrt(sum(b_tilde^2))
+      dif <- max(dif, sum((b_hat - b.new)^2))
+      b_hat <- b.new
 
       t <- t+1
     }
@@ -184,18 +198,18 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
     # calculate lambda
     x <- NULL
     for (i in 1:n){
-      t.temp <- ti[[i]]
-      t.temp <- t.temp[t.temp>0]
-      x <- c(x,as.vector(t(a.hat[i]*b.hat%o%phi.hat[t.temp])))
+      t_temp <- ti[[i]]
+      t_temp <- t_temp[t_temp>0]
+      x <- c(x,as.vector(t(a_hat[i]*b_hat%o%phi_hat[t_temp])))
     }
     X <- cbind(X, x)
-    l.fit <- lm(y~x-1)
-    lambda <- as.numeric(l.fit$coefficients)
-    A[,s] <- a.hat
-    B[,s] <- b.hat
-    Phi[,s] <- t(phi.hat)
+    lm_fit <- lm(y~x-1)
+    lambda <- as.numeric(lm_fit$coefficients)
+    A[,s] <- a_hat
+    B[,s] <- b_hat
+    Phi[,s] <- t(phi_hat)
     Lambda[s] <- lambda
-    Rsq[s] <- summary(l.fit)$r.squared
+    Rsq[s] <- summary(lm_fit)$r.squared
     accumRsq[s] <- summary(lm(y0~X-1))$r.squared
 
     # update datlist
@@ -206,8 +220,8 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
     }
     print(paste0("Convergence reached at dif=", dif, ', iter=', t))
   }
-  l.fit <- lm(y0~X-1)
-  Lambda <- as.numeric(l.fit$coefficients)
+  lm_fit <- lm(y0~X-1)
+  Lambda <- as.numeric(lm_fit$coefficients)
 
   # revise the sign of Lambda
   for (r in 1:length(Lambda)){
@@ -217,24 +231,24 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
     }
   }
   # revise the signs to make sure summation of phi is nonnegative
-  sgn_phi <- sign(colSums(Phi))
-  sgn_phi[sgn_phi==0] <- 1
+  sgn.phi <- sign(colSums(Phi))
+  sgn.phi[sgn.phi==0] <- 1
   for (r in 1:ncol(Phi)){
-    Phi[,r] <- sgn_phi[r]*Phi[,r]
-    A[,r] <- sgn_phi[r]*A[,r]
+    Phi[,r] <- sgn.phi[r]*Phi[,r]
+    A[,r] <- sgn.phi[r]*A[,r]
   }
   # revise the signs to make sure summation of B is nonnegative
-  sgn_B <- sign(colSums(B))
-  sgn_B[sgn_B==0] <- 1
+  sgn.B <- sign(colSums(B))
+  sgn.B[sgn.B==0] <- 1
   for (r in 1:ncol(Phi)){
-    B[,r] <- sgn_B[r]*B[,r]
-    A[,r] <- sgn_B[r]*A[,r]
+    B[,r] <- sgn.B[r]*B[,r]
+    A[,r] <- sgn.B[r]*A[,r]
   }
-  time.return <- seq(interval[1],interval[2],length.out = resolution)
-  time.return <- time.return * (input.time.range[2] - input.time.range[1]) + input.time.range[1]
-  results <- list("A.hat" = A, "B.hat" = B,
-                 "Phi.hat" = Phi, "time.Phi" = time.return,
-                 "Lambda" = Lambda, "r.square" = Rsq, "accum.r.square" = accumRsq)
+  time_return <- seq(interval[1],interval[2],length.out = resolution)
+  time_return <- time_return * (input_time_range[2] - input_time_range[1]) + input_time_range[1]
+  results <- list("A_hat" = A, "B_hat" = B,
+                 "Phi_hat" = Phi, "time_Phi" = time_return,
+                 "Lambda" = Lambda, "r_square" = Rsq, "accum_r_square" = accumRsq)
   return(results)
 }
 
@@ -250,28 +264,30 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
 #' and the following rows representing the feature values.
 #' @param r The number of ranks in the mean structure. Default is 1.
 #' @return A list of results.
-#' \item{datlist}{The new temporal tensor after mean structure is removed}
-#' \item{A.tilde}{The subject singular vector of the mean structure, a subject by r matrix.}
-#' \item{B.tilde}{The feature singular vector of the mean structure, a feature by r matrix.}
-#' \item{lambda.tilde}{The singular value of the mean structure, a length r vector.}
+#' \describe{
+#'   \item{datlist}{The new temporal tensor after mean structure is removed.}
+#'   \item{A_tilde}{The subject singular vector of the mean structure, a subject by r matrix.}
+#'   \item{B_tilde}{The feature singular vector of the mean structure, a feature by r matrix.}
+#'   \item{lambda_tilde}{The singular value of the mean structure, a length r vector.}
+#' }
 #' @seealso Examples can be found in \code{\link{tempted}}.
 #' @export
 #' @md
 svd_centralize <- function(datlist, r = 1){
   n <- length(datlist)
   p <- nrow(datlist[[1]])-1
-  mean_mat <- matrix(0,n,p)
+  mean_hat <- matrix(0,n,p)
   for (i in 1:length(datlist)){
-    mean_mat[i,] <- apply(datlist[[i]][-1,], 1, mean)
+    mean_hat[i,] <- apply(datlist[[i]][-1,], 1, mean)
   }
-  mean_mat.svd <- svd(mean_mat, nu=r, nv=r)
-  mean_mat.svd1 <- mean_mat.svd$u %*% t(mean_mat.svd$v * mean_mat.svd$d[1:r])
+  mean_hat_svd <- svd(mean_hat, nu=r, nv=r)
+  mean_hat_svd1 <- mean_hat_svd$u %*% t(mean_hat_svd$v * mean_hat_svd$d[1:r])
   mf.new <- datlist
   for (i in 1:length(datlist)){
-    mf.new[[i]][-1,] <- datlist[[i]][-1,] - mean_mat.svd1[i,]
+    mf.new[[i]][-1,] <- datlist[[i]][-1,] - mean_hat_svd1[i,]
   }
-  results <- list("datlist" = mf.new, "A.tilde" = mean_mat.svd$u,
-                  "B.tilde" = mean_mat.svd$v, "lambda.tilde" = mean_mat.svd$d[1:r])
+  results <- list("datlist" = mf.new, "A_tilde" = mean_hat_svd$u,
+                  "B_tilde" = mean_hat_svd$v, "lambda_tilde" = mean_hat_svd$d[1:r])
   return(results)
 }
 
@@ -282,17 +298,17 @@ svd_centralize <- function(datlist, r = 1){
 #' that can be used as the input of \code{\link{tempted}} and \code{\link{svd_centralize}}.
 #' For data that are not read counts, or data that are not microbiome data,
 #' the user can apply their desired transformation to the data before formatting into list.
-#' @param feature_table A sample by feature matrix.
-#' @param time_point The time stamp of each sample, matched with the rows of \code{feature_table}.
-#' @param subjectID The subject ID of each sample, matched with the rows of \code{feature_table}.
+#' @param featuretable A sample by feature matrix.
+#' @param timepoint The time stamp of each sample, matched with the rows of \code{featuretable}.
+#' @param subjectID The subject ID of each sample, matched with the rows of \code{featuretable}.
 #' @param threshold A threshold for feature filtering for microbiome data.
 #' Features with zero value percentage > threshold will be excluded. Default is 0.95.
-#' @param pseudo_count A small number to add to all the counts before
+#' @param pseudo A small number to add to all the counts before
 #' normalizing into proportions and log transformation.
 #' Default is 1/2 of the smallest non-zero value that is specific for each sample.
-#' This pseudo count is added for \code{transform=c("log_comp", "clr", "logit")}.
+#' This pseudo count is added for \code{transform=c("logcomp", "clr", "logit")}.
 #' @param transform The transformation applied to the data.
-#' \code{"log_comp"} for log of compositions.
+#' \code{"logcomp"} for log of compositions.
 #' \code{"comp"} for compositions.
 #' \code{"ast"} for arcsine squared transformation.
 #' \code{"clr"} for central log ratio transformation.
@@ -300,58 +316,54 @@ svd_centralize <- function(datlist, r = 1){
 #' \code{"none"} for no transformation.
 #' Default \code{transform="clr"} is recommended for microbiome data.
 #' For data that are already transformed, use \code{transform="none"}.
-#' @return A length n list of matrices as the input of \code{\link{tempted}} and \code{\link{svd_centralize}}.
-#' Each matrix represents a subject,
-#' with columns representing samples from this subject,
-#' the first row representing the sampling time points,
-#' and the following rows representing the feature values.
+#' @return A length n list of matrices as the input of \code{\link{tempted}} and \code{\link{svd_centralize}}.  Each matrix represents a subject, with columns representing samples from this subject, the first row representing the sampling time points, and the following rows representing the feature values.
 #' @seealso Examples can be found in \code{\link{tempted}}.
 #' @export
 #' @md
-format_tempted <- function(feature_table, time_point, subjectID,
-                           threshold=0.95, pseudo_count=NULL, transform="clr"){
+format_tempted <- function(featuretable, timepoint, subjectID,
+                           threshold=0.95, pseudo=NULL, transform="clr"){
   ntm <- which(table(subjectID)==1)
   if(length(ntm)>0)
     stop(paste('Please remove these subjects with only one time point:',
                paste(names(ntm), collapse=', ')))
-  if (length(subjectID)!=nrow(feature_table))
-    stop('length of subjectID does not match feature_table!')
-  if (length(time_point)!=nrow(feature_table))
-    stop('length of time_point does not match feature_table!')
+  if (length(subjectID)!=nrow(featuretable))
+    stop('length of subjectID does not match featuretable!')
+  if (length(timepoint)!=nrow(featuretable))
+    stop('length of timepoint does not match featuretable!')
   # get pseudo count
-  if (is.null(pseudo_count) & (transform %in% c("clr", "log_comp", "logit"))){
-    pseudo_count <- apply(feature_table, 1, function(x){
+  if (is.null(pseudo) & (transform %in% c("clr", "logcomp", "logit"))){
+    pseudo <- apply(featuretable, 1, function(x){
       min(x[x!=0])/2
     })
   }
   # keep taxon that has non-zeros in >1-threshold samples
-  feature_table <- feature_table[,colMeans(feature_table==0)<=threshold]
-  if(transform=='log_comp'){
-    feature_table <- feature_table+pseudo_count
-    feature_table <- t(log(feature_table/rowSums(feature_table)))
+  featuretable <- featuretable[,colMeans(featuretable==0)<=threshold]
+  if(transform=='logcomp'){
+    featuretable <- featuretable+pseudo
+    featuretable <- t(log(featuretable/rowSums(featuretable)))
   }else if(transform=='comp'){
-    feature_table <- feature_table
-    feature_table <- t(feature_table/rowSums(feature_table))
+    featuretable <- featuretable
+    featuretable <- t(featuretable/rowSums(featuretable))
   }else if(transform=='ast'){
-    feature_table <- feature_table
-    feature_table <- t(asin(sqrt(feature_table/rowSums(feature_table))))
+    featuretable <- featuretable
+    featuretable <- t(asin(sqrt(featuretable/rowSums(featuretable))))
   }else if(transform=='clr'){
-    feature_table <- feature_table+pseudo_count
-    feature_table <- log(feature_table/rowSums(feature_table))
-    feature_table <- t(feature_table-rowMeans(feature_table))
+    featuretable <- featuretable+pseudo
+    featuretable <- log(featuretable/rowSums(featuretable))
+    featuretable <- t(featuretable-rowMeans(featuretable))
   }else if(transform=='logit'){
-    feature_table <- feature_table+pseudo_count
-    feature_table <- t(feature_table/rowSums(feature_table))
-    feature_table <- log(feature_table/(1-feature_table))
+    featuretable <- featuretable+pseudo
+    featuretable <- t(featuretable/rowSums(featuretable))
+    featuretable <- log(featuretable/(1-featuretable))
   }else if(transform=='none'){
-    feature_table <- t(feature_table)
+    featuretable <- t(featuretable)
   }else{
-    print('Input transformation method is wrong! log_comp is applied instead')
-    feature_table <- feature_table+pseudo_count
-    feature_table <- t(log(feature_table/rowSums(feature_table)))
+    print('Input transformation method is wrong! logcomp is applied instead')
+    featuretable <- featuretable+pseudo
+    featuretable <- t(log(featuretable/rowSums(featuretable)))
   }
-  feature_table <- rbind(time_point, feature_table)
-  rownames(feature_table)[1] <- 'time_point'
+  featuretable <- rbind(timepoint, featuretable)
+  rownames(featuretable)[1] <- 'timepoint'
   subID <- unique(subjectID)
   nsub <- length(subID)
 
@@ -362,7 +374,7 @@ format_tempted <- function(feature_table, time_point, subjectID,
   # Each slice represents an individual (unequal sized matrix).
   for (i in 1:nsub){
     # print(i)
-    datlist[[i]] <- feature_table[, subjectID==subID[i]]
+    datlist[[i]] <- featuretable[, subjectID==subID[i]]
     datlist[[i]] <- datlist[[i]][,order(datlist[[i]][1,])]
     datlist[[i]] <- datlist[[i]][,!duplicated(datlist[[i]][1,])]
   }
@@ -377,39 +389,19 @@ format_tempted <- function(feature_table, time_point, subjectID,
 #' RKHS regression that iteratively updates the temporal loading function.
 #' @param x,y Two values between which the Bernoulli kernel is calculated.
 #' @return The calculated kernel between \code{x} and \code{y}.
-#' @export
 #' @md
 bernoulli_kernel <- function(x, y){
-  k1.x <- x-0.5
-  k1.y <- y-0.5
-  k2.x <- 0.5*(k1.x^2-1/12)
-  k2.y <- 0.5*(k1.y^2-1/12)
+  k1_x <- x-0.5
+  k1_y <- y-0.5
+  k2_x <- 0.5*(k1_x^2-1/12)
+  k2_y <- 0.5*(k1_y^2-1/12)
   xy <- abs(x %*% t(rep(1,length(y))) - rep(1,length(x)) %*% t(y))
-  k4.xy <- 1/24 * ((xy-0.5)^4 - 0.5*(xy-0.5)^2 + 7/240)
-  kern.xy <- k1.x %*% t(k1.y) + k2.x %*% t(k2.y) - k4.xy + 1
-  return(kern.xy)
+  k4_xy <- 1/24 * ((xy-0.5)^4 - 0.5*(xy-0.5)^2 + 7/240)
+  kern_xy <- k1_x %*% t(k1_y) + k2_x %*% t(k2_y) - k4_xy + 1
+  return(kern_xy)
 }
 
 
-
-#' RKHS regression to update the temporal loading function.
-#' @description This function is an internal function that performs the RKHS regression.
-#' It is applied iteratively in \code{\link{tempted}} to update the temporal loading function.
-#' @export
-#' @md
-freg_rkhs <- function(Ly, a.hat, ind_vec, Kmat, Kmat_output, smooth=1e-8){
-  A <- Kmat
-  for (i in 1:length(Ly)){
-    A[ind_vec==i,] <- A[ind_vec==i,]*a.hat[i]^2
-  }
-  cvec <- unlist(Ly)
-
-  A.temp <- A + smooth*diag(ncol(A))
-  beta <- solve(A.temp)%*%cvec
-
-  phi.est <- Kmat_output %*% beta
-  return(phi.est)
-}
 
 
 #' @title Calculate the de-noised temporal tensor
@@ -421,18 +413,18 @@ freg_rkhs <- function(Ly, a.hat, ind_vec, Kmat, Kmat_output, smooth=1e-8){
 #' @export
 #' @md
 tdenoise <- function(res_tempted, mean_svd=NULL){
-  n <- nrow(res_tempted$A.hat)
-  p <- nrow(res_tempted$B.hat)
-  resol <- nrow(res_tempted$Phi.hat)
-  tensor.est <- array(0,dim=c(n,p,resol))
+  n <- nrow(res_tempted$A_hat)
+  p <- nrow(res_tempted$B_hat)
+  resol <- nrow(res_tempted$Phi_hat)
+  tensor_est <- array(0,dim=c(n,p,resol))
   if (!is.null(mean_svd))
-    tensor.est <- (mean_svd$A.tilde %*% t(mean_svd$B.tilde * mean_svd$lambda.tilde)) %o%
+    tensor_est <- (mean_svd$A_tilde %*% t(mean_svd$B_tilde * mean_svd$lambda_tilde)) %o%
     rep(1, resol)
-  for (i in 1:ncol(res_tempted$A.hat)){
-    tensor.est <- tensor.est+res_tempted$A.hat[,i]%o%res_tempted$B.hat[,i]%o%res_tempted$Phi.hat[,i]*res_tempted$Lambda[i]
+  for (i in 1:ncol(res_tempted$A_hat)){
+    tensor_est <- tensor_est+res_tempted$A_hat[,i]%o%res_tempted$B_hat[,i]%o%res_tempted$Phi_hat[,i]*res_tempted$Lambda[i]
   }
-  dimnames(tensor.est)[[3]] <- res_tempted$time.Phi
-  return(tensor.est)
+  dimnames(tensor_est)[[3]] <- res_tempted$time_Phi
+  return(tensor_est)
 }
 
 
@@ -462,7 +454,7 @@ tdenoise <- function(res_tempted, mean_svd=NULL){
 #'                                 meta_train$day_of_life,
 #'                                 meta_train$studyid,
 #'                                 threshold=0.95,
-#'                                 pseudo_count=0.5,
+#'                                 pseudo=0.5,
 #'                                 transform="clr")
 #'
 #' mean_svd_train <- svd_centralize(datlist_train, r=1)
@@ -478,7 +470,7 @@ tdenoise <- function(res_tempted, mean_svd=NULL){
 #'                                meta_test$day_of_life,
 #'                                meta_test$studyid,
 #'                                threshold=1,
-#'                                pseudo_count=0.5,
+#'                                pseudo=0.5,
 #'                                transform="clr")
 #'
 #' # estimate the subject loading of the testing subject
@@ -487,42 +479,42 @@ tdenoise <- function(res_tempted, mean_svd=NULL){
 #' @export
 #' @md
 est_test_subject <- function(datlist, res_tempted, mean_svd=NULL){
-  B <- res_tempted$B.hat
-  Phi <- res_tempted$Phi.hat
+  B <- res_tempted$B_hat
+  Phi <- res_tempted$Phi_hat
   Lambda <- res_tempted$Lambda
-  time.return <- res_tempted$time.Phi
+  time_return <- res_tempted$time_Phi
   n <- length(datlist)
   p <- nrow(B)
   r <- ncol(B)
-  resolution <- length(time.return)
+  resolution <- length(time_return)
   A_test <- matrix(0,n,r)
   y <- NULL
   ti <- vector(mode = "list", length = n)
   # get the coordinate of observed time points in the returned time grid
   for (i in 1:n){
-    ti[[i]] <- sapply(datlist[[i]][1,], function(x){which.min(abs(x-time.return))})
+    ti[[i]] <- sapply(datlist[[i]][1,], function(x){which.min(abs(x-time_return))})
     y <- c(y, as.numeric(t(datlist[[i]][-1,ti[[i]]>0])))
   }
   mf.new <- datlist
   if(!is.null(mean_svd)){
-    mean_mat <- matrix(0,n,p)
+    mean_hat <- matrix(0,n,p)
     for (i in 1:length(datlist)){
-      mean_mat[i,] <- apply(datlist[[i]][-1,], 1, mean)
+      mean_hat[i,] <- apply(datlist[[i]][-1,], 1, mean)
     }
-    mean_mat.svd1 <- mean_mat%*%tcrossprod(mean_svd$B.tilde)
+    mean_hat_svd1 <- mean_hat%*%tcrossprod(mean_svd$B_tilde)
     mf.new <- datlist
     for (i in 1:length(datlist)){
-      mf.new[[i]][-1,] <- datlist[[i]][-1,] - mean_mat.svd1[i,]
+      mf.new[[i]][-1,] <- datlist[[i]][-1,] - mean_hat_svd1[i,]
     }
   }
 
   for (s in 1:r){
     for (i in 1:n){
-      t.temp <- ti[[i]]>0
-      A_test[i,s] <- B[,s] %*% mf.new[[i]][2:(p+1),t.temp] %*% Phi[ti[[i]][t.temp],s]
-      A_test[i,s] <- A_test[i,s] / sum((Phi[ti[[i]][t.temp],s])^2) / Lambda[s]
-      mf.new[[i]][2:(p+1),t.temp] <- mf.new[[i]][2:(p+1),t.temp] -
-        Lambda[s] * A_test[i,s] * (B[,s] %*% t(Phi[ti[[i]][t.temp],s]))
+      t_temp <- ti[[i]]>0
+      A_test[i,s] <- B[,s] %*% mf.new[[i]][2:(p+1),t_temp] %*% Phi[ti[[i]][t_temp],s]
+      A_test[i,s] <- A_test[i,s] / sum((Phi[ti[[i]][t_temp],s])^2) / Lambda[s]
+      mf.new[[i]][2:(p+1),t_temp] <- mf.new[[i]][2:(p+1),t_temp] -
+        Lambda[s] * A_test[i,s] * (B[,s] %*% t(Phi[ti[[i]][t_temp],s]))
     }
   }
   rownames(A_test) <- names(mf.new)
@@ -547,30 +539,25 @@ est_test_subject <- function(datlist, res_tempted, mean_svd=NULL){
 #' @param contrast A matrix choosing how components are combined,
 #' each column is a contrast of length r and used to calculate the linear combination of
 #' the feature loadings of r components.
-#' @param get_contrast A vector denoting which components to use to construct a contrast and combine.
-#' A vector of \code{c(1,1,0)} means the first two of three components are used to find the contrast to combine.
 #' @return A list of results.
-#' \item{metafeature.aggregate}{The meta feature obtained by aggregating the observed temporal tensor.
-#' It is a data.frame with four columns: "value" for the meta feature values,
-#' "subID" for the subject ID, "timepoint" for the time points,
-#' and "PC" indicating which component was used to construct the meta feature.}
-#' \item{metafeature.aggregate.est}{The meta feature obtained by aggregating the denoised temporal tensor.
-#' It has the same structure as \code{metafeature.aggregate}.}
-#' \item{contrast}{The contrast used to linearly combine the components.
-#' It is either from the input parameter \code{contrast} or calculated by setting \code{get_contrast}.}
-#' \item{toppct}{A matrix of TRUE/FALSE indicating which features are aggregated in each component and contrast.}
+#' \describe{
+#'   \item{metafeature_aggregate}{The meta feature obtained by aggregating the observed temporal tensor. It is a data.frame with four columns: "value" for the meta feature values, "subID" for the subject ID, "timepoint" for the time points, and "PC" indicating which component was used to construct the meta feature.}
+#'   \item{metafeature_aggregate_est}{The meta feature obtained by aggregating the denoised temporal tensor. It has the same structure as \code{metafeature_aggregate}.}
+#'   \item{contrast}{The contrast used to linearly combine the components from input.}
+#'   \item{toppct}{A matrix of TRUE/FALSE indicating which features are aggregated in each component and contrast.}
+#' }
 #' @examples
 #' datlist <- format_tempted(count_table,
 #'                           meta_table$day_of_life,
 #'                           meta_table$studyid,
-#'                           pseudo_count=0.5,
+#'                           pseudo=0.5,
 #'                           transform="clr")
 #'
 #' mean_svd <- svd_centralize(datlist, r=1)
 #'
 #' res_tempted <- tempted(mean_svd$datlist, r=3, smooth=1e-5)
 #'
-#' datlist_raw <- format_tempted(count_table,
+#' datalist_raw <- format_tempted(count_table,
 #'                               meta_table$day_of_life,
 #'                               meta_table$studyid,
 #'                               transform="none")
@@ -585,69 +572,48 @@ est_test_subject <- function(datlist, res_tempted, mean_svd=NULL){
 #'
 #' group <- unique(meta_table[, c("studyid", "delivery")])
 #'
-#' plot_metafeature(res_aggregate$metafeature.aggregate, group, bws=30)
+#' plot_metafeature(res_aggregate$metafeature_aggregate, group, bws=30)
 #' @export
 #' @md
 aggregate_feature <- function(res_tempted, mean_svd=NULL, datlist,
                                pct=1,
-                              contrast=NULL, get_contrast=NULL){
-  B.data <- as.data.frame(res_tempted$B.hat)
-  r <- ncol(B.data)
-  if (!is.null(get_contrast)){
-    datlist.agg <- sapply(datlist, function(x){t(B.data)%*%x[-1,]}, simplify=F)
-    metafeature.aggregate <- NULL
-    for (i in 1:length(datlist.agg)){
-      tmp <- data.frame(value=as.vector(datlist.agg[[i]]),
-                        subID=names(datlist.agg)[i],
-                        timepoint=as.vector(t(matrix(datlist[[i]][1,], ncol(datlist[[i]]), ncol(B.data)))),
-                        PC=rep(rownames(datlist.agg[[i]]), ncol(datlist.agg[[i]])))
-
-      metafeature.aggregate <- rbind(metafeature.aggregate, tmp)
-    }
-    metafeature.aggregate.wide <- reshape(metafeature.aggregate, timevar="PC",
-                                    idvar=c("subID", "timepoint"),
-                                    direction="wide")
-    colnames(metafeature.aggregate.wide)[-c(1,2)] <- substring(colnames(metafeature.aggregate.wide)[-c(1,2)],7)
-    scale_mat <- scale(metafeature.aggregate.wide[-c(1,2)][get_contrast])
-    component_svd <- svd(scale_mat)
-    contrast_svd <- matrix(0, r, ncol(component_svd$v))
-    contrast_svd[get_contrast,] <- component_svd$v
-    contrast <- cbind(contrast, contrast_svd)
-  }
+                              contrast=NULL){
+  B_data <- as.data.frame(res_tempted$B_hat)
+  r <- ncol(B_data)
   if(!is.null(contrast)){
-    contrast.data <- res_tempted$B.hat%*%contrast
-    colnames(contrast.data) <- paste('Contrast', 1:ncol(contrast))
-    B.data <- cbind(B.data, contrast.data)
+    contrast_data <- res_tempted$B_hat%*%contrast
+    colnames(contrast_data) <- paste('Contrast', 1:ncol(contrast))
+    B_data <- cbind(B_data, contrast_data)
   }
-  toppct <- apply(abs(B.data), 2, function(x){x>=quantile(x, 1-pct)})
-  datlist.agg <- sapply(datlist, function(x){t(B.data*toppct)%*%x[-1,]}, simplify=F)
-  metafeature.aggregate <- NULL
-  for (i in 1:length(datlist.agg)){
-    tmp <- data.frame(value=as.vector(datlist.agg[[i]]),
-                      subID=names(datlist.agg)[i],
-                      timepoint=as.vector(t(matrix(datlist[[i]][1,], ncol(datlist[[i]]), ncol(B.data)))),
-                      PC=rep(rownames(datlist.agg[[i]]), ncol(datlist.agg[[i]])))
+  toppct <- apply(abs(B_data), 2, function(x){x>=quantile(x, 1-pct)})
+  datalist_agg <- sapply(datlist, function(x){t(B_data*toppct)%*%x[-1,]}, simplify=F)
+  metafeature_aggregate <- NULL
+  for (i in 1:length(datalist_agg)){
+    tmp <- data.frame(value=as.vector(datalist_agg[[i]]),
+                      subID=names(datalist_agg)[i],
+                      timepoint=as.vector(t(matrix(datlist[[i]][1,], ncol(datlist[[i]]), ncol(B_data)))),
+                      PC=rep(rownames(datalist_agg[[i]]), ncol(datalist_agg[[i]])))
 
-    metafeature.aggregate <- rbind(metafeature.aggregate, tmp)
+    metafeature_aggregate <- rbind(metafeature_aggregate, tmp)
   }
-  metafeature.aggregate <- metafeature.aggregate[,c("value", "subID", "timepoint", "PC")]
+  metafeature_aggregate <- metafeature_aggregate[,c("value", "subID", "timepoint", "PC")]
 
   # estimated
-  tensor.est <- tdenoise(res_tempted, mean_svd)
-  tensor.est.agg <- apply(tensor.est, c(1,3), function(x){(t(B.data*toppct)%*%x)})
-  metafeature.aggregate.est <- NULL
+  tensor_est <- tdenoise(res_tempted, mean_svd)
+  tensor_est_agg <- apply(tensor_est, c(1,3), function(x){(t(B_data*toppct)%*%x)})
+  metafeature_aggregate_est <- NULL
   for (i in 1:r){
-    tmp <- data.frame(value=as.vector(tensor.est.agg[i,,]),
-                      subID=rep(dimnames(tensor.est.agg)[[2]], dim(tensor.est.agg)[3]),
-                      timepoint=as.vector(t(matrix(res_tempted$time.Phi, length(res_tempted$time.Phi),dim(tensor.est.agg)[2]))),
-                      PC=colnames(B.data)[i])
-    metafeature.aggregate.est <- rbind(metafeature.aggregate.est,tmp)
+    tmp <- data.frame(value=as.vector(tensor_est_agg[i,,]),
+                      subID=rep(dimnames(tensor_est_agg)[[2]], dim(tensor_est_agg)[3]),
+                      timepoint=as.vector(t(matrix(res_tempted$time_Phi, length(res_tempted$time_Phi),dim(tensor_est_agg)[2]))),
+                      PC=colnames(B_data)[i])
+    metafeature_aggregate_est <- rbind(metafeature_aggregate_est,tmp)
   }
-  metafeature.aggregate.est <- metafeature.aggregate.est[,c("value", "subID", "timepoint", "PC")]
-  metafeature.aggregate.est$type <- 'estimated'
+  metafeature_aggregate_est <- metafeature_aggregate_est[,c("value", "subID", "timepoint", "PC")]
+  metafeature_aggregate_est$type <- 'estimated'
 
-  return(list(metafeature.aggregate=metafeature.aggregate,
-              metafeature.aggregate.est=metafeature.aggregate.est,
+  return(list(metafeature_aggregate=metafeature_aggregate,
+              metafeature_aggregate_est=metafeature_aggregate_est,
               contrast=contrast,
               toppct=toppct))
 }
@@ -670,79 +636,73 @@ aggregate_feature <- function(res_tempted, mean_svd=NULL, datlist,
 #' @param contrast A matrix choosing how components are combined,
 #' each column is a contrast of length r and used to calculate the linear combination of
 #' the feature loadings of r components.
-#' @param get_contrast A vector denoting which components to use to construct a contrast and combine.
-#' A vector of \code{c(1,1,0)} means the first two of three components are used to find the contrast to combine.
-#' @return A list of results.
-#' \item{metafeature.ratio}{The log ratio abundance of the top over bottom ranking features.
-#' It is a data.frame with five columns: "value" for the log ratio values,
-#' "subID" for the subject ID, and "timepoint" for the time points,
-#' and "PC" indicating which component was used to construct the meta feature.}
-#' \item{contrast}{The contrast used to linearly combine the components.
-#' It is either from the input parameter \code{contrast} or calculated by setting \code{get_contrast}.}
-#' \item{toppct}{A matrix of TRUE/FALSE indicating which features are ranked top in each component (and contrast)
-#' and used as the numerator of the log ratio.}
-#' \item{bottompct}{A matrix of TRUE/FALSE indicating which features are ranked bottom in each component (and contrast)
-#' and used as the denominator of the log ratio.}
+#' @return A list of results:
+#' \describe{
+#'   \item{metafeature_ratio}{The log ratio abundance of the top over bottom ranking features. It is a data.frame with five columns: "value" for the log ratio values, "subID" for the subject ID, and "timepoint" for the time points, and "PC" indicating which component was used to construct the meta feature.}
+#'   \item{contrast}{The contrast used to linearly combine the components from input.}
+#'   \item{toppct}{A matrix of TRUE/FALSE indicating which features are ranked top in each component (and contrast) and used as the numerator of the log ratio.}
+#'   \item{bottompct}{A matrix of TRUE/FALSE indicating which features are ranked bottom in each component (and contrast) and used as the denominator of the log ratio.}
+#' }
 #' @examples
 #' datlist <- format_tempted(count_table,
 #'                           meta_table$day_of_life,
 #'                           meta_table$studyid,
-#'                           pseudo_count=0.5,
+#'                           pseudo=0.5,
 #'                           transform="clr")
 #'
 #' mean_svd <- svd_centralize(datlist, r=1)
 #'
 #' res_tempted <- tempted(mean_svd$datlist, r=3, smooth=1e-5)
 #'
-#' datlist_raw <- format_tempted(count_table, meta_table$day_of_life, meta_table$studyid,
+#' datalist_raw <- format_tempted(count_table, meta_table$day_of_life, meta_table$studyid,
 #' transform="none")
 #'
 #' contrast <- cbind(c(1,1,0), c(1,-1,0))
 #'
-#' res_ratio <- ratio_feature(res_tempted, datlist_raw, pct=0.1,
+#' res_ratio <- ratio_feature(res_tempted, datalist_raw, pct=0.1,
 #' absolute=FALSE, contrast=contrast)
 #'
 #' group <- unique(meta_table[, c("studyid", "delivery")])
 #'
-#' plot_metafeature(res_ratio$metafeature.ratio, group, bws=30)
+#' plot_metafeature(res_ratio$metafeature_ratio, group, bws=30)
 #' @export
 #' @md
 ratio_feature <- function(res_tempted, datlist,
                               pct=0.05, absolute=FALSE, contrast=NULL){
-  B.data <- as.data.frame(res_tempted$B.hat)
+  B_data <- as.data.frame(res_tempted$B_hat)
   if (!is.null(contrast)){
-    contrast.data <- res_tempted$B.hat%*%contrast
-    colnames(contrast.data) <- paste('Contrast', 1:ncol(contrast))
-    B.data <- cbind(B.data, contrast.data)
+    contrast_data <- res_tempted$B_hat%*%contrast
+    colnames(contrast_data) <- paste('Contrast', 1:ncol(contrast))
+    B_data <- cbind(B_data, contrast_data)
   }
   if(!absolute){
-    toppct <- apply(B.data, 2, function(x){x>quantile(x, 1-pct) & x>0})
-    bottompct <- apply(-B.data, 2, function(x){x>quantile(x, 1-pct) & x>0})
+    toppct <- apply(B_data, 2, function(x){x>quantile(x, 1-pct) & x>0})
+    bottompct <- apply(-B_data, 2, function(x){x>quantile(x, 1-pct) & x>0})
   }else{
-    toppct <- apply(B.data, 2, function(x){abs(x)>quantile(abs(x), 1-pct) & x>0})
-    bottompct <- apply(B.data, 2, function(x){abs(x)>quantile(abs(x), 1-pct) & x<0})
+    toppct <- apply(B_data, 2, function(x){abs(x)>quantile(abs(x), 1-pct) & x>0})
+    bottompct <- apply(B_data, 2, function(x){abs(x)>quantile(abs(x), 1-pct) & x<0})
   }
-  pseudo_count <- min(sapply(datlist, function(x){
+  pseudo <- min(sapply(datlist, function(x){
     y<-x[-1,]
     return(min(y[y!=0]))
     }))/2
-  datlist.ratio <- sapply(datlist,
+  datlist_ratio <- sapply(datlist,
                           function(x){
                             tt <- (t(toppct)%*%x[-1,])
                             bb <- (t(bottompct)%*%x[-1,])
-                            return(log((tt+pseudo_count)/(bb+pseudo_count)))},
+                            return(log((tt+pseudo)/(bb+pseudo)))},
                           simplify=F)
-  metafeature.ratio <- NULL
-  for (i in 1:length(datlist.ratio)){
-    tmp <- data.frame(value=as.vector(datlist.ratio[[i]]),
-                      subID=names(datlist.ratio)[i],
-                      timepoint=as.vector(t(matrix(datlist[[i]][1,], ncol(datlist[[i]]), ncol(B.data)))),
-                      PC=rep(rownames(datlist.ratio[[i]]), ncol(datlist.ratio[[i]])))
+  metafeature_ratio <- NULL
+  for (i in 1:length(datlist_ratio)){
+    tmp <- data.frame(value=as.vector(datlist_ratio[[i]]),
+                      subID=names(datlist_ratio)[i],
+                      timepoint=as.vector(t(matrix(datlist[[i]][1,], ncol(datlist[[i]]), ncol(B_data)))),
+                      PC=rep(rownames(datlist_ratio[[i]]), ncol(datlist_ratio[[i]])))
 
-    metafeature.ratio <- rbind(metafeature.ratio, tmp)
+    metafeature_ratio <- rbind(metafeature_ratio, tmp)
   }
-  metafeature.ratio <- metafeature.ratio[,c("value", "subID", "timepoint", "PC")]
-  return(list(metafeature.ratio=metafeature.ratio,
+  metafeature_ratio <- metafeature_ratio[,c("value", "subID", "timepoint", "PC")]
+  return(list(metafeature_ratio=metafeature_ratio,
               contrast=contrast,
               toppct=toppct, bottompct=bottompct))
 }
@@ -755,19 +715,19 @@ ratio_feature <- function(res_tempted, datlist,
 #' @param smooth Smoothing parameter for RKHS norm.
 #' Larger means smoother temporal loading functions. Default is set to be 1e-8.
 #' Value can be adjusted depending on the dataset by checking the smoothness of the estimated temporal loading function in plot.
-#' @param feature_table A sample by feature matrix. Input for \code{\link{format_tempted}}.
-#' @param time_point The time stamp of each sample, matched with the rows of \code{feature_table}. Input for \code{\link{format_tempted}}.
-#' @param subjectID The subject ID of each sample, matched with the rows of \code{feature_table}. Input for \code{\link{format_tempted}}.
+#' @param featuretable A sample by feature matrix. Input for \code{\link{format_tempted}}.
+#' @param timepoint The time stamp of each sample, matched with the rows of \code{featuretable}. Input for \code{\link{format_tempted}}.
+#' @param subjectID The subject ID of each sample, matched with the rows of \code{featuretable}. Input for \code{\link{format_tempted}}.
 #' @param threshold A threshold for feature filtering for microbiome data.
 #' Features with zero value percentage >= threshold will be excluded. Default is 0.95.
 #' Input for \code{\link{format_tempted}}.
-#' @param pseudo_count A small number to add to all the counts before
+#' @param pseudo A small number to add to all the counts before
 #' normalizing into proportions and log transformation.
 #' Default is 1/2 of the smallest non-zero value that is specific for each sample.
-#' This pseudo count is added for \code{transform=c("log_comp", "clr", "logit")}.
+#' This pseudo count is added for \code{transform=c("logcomp", "clr", "logit")}.
 #' Input for \code{\link{format_tempted}}.
 #' @param transform The transformation applied to the data.
-#' \code{"log_comp"} for log of compositions.
+#' \code{"logcomp"} for log of compositions.
 #' \code{"comp"} for compositions.
 #' \code{"ast"} for arcsine squared transformation.
 #' \code{"clr"} for central log ratio transformation.
@@ -791,61 +751,52 @@ ratio_feature <- function(res_tempted, datlist,
 #' Default is set to 101. It does not affect the subject or feature loadings. Input for \code{\link{tempted}}.
 #' @param maxiter Maximum number of iteration. Default is 20. Input for \code{\link{tempted}}.
 #' @param epsilon Convergence criteria for difference between iterations. Default is 1e-4. Input for \code{\link{tempted}}.
-#' @param r.svd The number of ranks in the mean structure. Default is 1. Input for \code{svd_centraliz}
-#' @param pct.ratio The percent of features to sum up. Default is 0.05, i.e. 5%.
+#' @param r_svd The number of ranks in the mean structure. Default is 1. Input for \code{svd_centraliz}
+#' @param pct_ratio The percent of features to sum up. Default is 0.05, i.e. 5%.
 #' Input for \code{\link{ratio_feature}}.
 #' @param absolute \code{absolute = TRUE} means features are ranked by the absolute value of feature loadings,
-#' and the top \code{pct.ratio} percent of features are picked.
+#' and the top \code{pct_ratio} percent of features are picked.
 #' \code{absolute = FALSE} means features are ranked by the original value of feature loadings,
-#' and the top and bottom \code{pct.ratio} percent of features are picked.
+#' and the top and bottom \code{pct_ratio} percent of features are picked.
 #' Then ratio is taken as the abundance of the features with positive loading
 #' over the abundance of the features with negative loading.
 #' Input for \code{\link{ratio_feature}}.
-#' @param pct.aggregate The percent of features to aggregate,
+#' @param pct_aggregate The percent of features to aggregate,
 #' features ranked by absolute value of the feature loading of each component.
 #' Default is 1, which means 100% of features are aggregated.
-#' Setting \code{pct.aggregate=0.01} means top 1% of features is aggregated,
+#' Setting \code{pct_aggregate=0.01} means top 1% of features is aggregated,
 #' where features are ranked in absolute value of feature loading of each component.
 #' Input for \code{\link{aggregate_feature}}.
 #' @param contrast A matrix choosing how components are combined,
 #' each column is a contrast of length r and used to calculate the linear combination of
 #' the feature loadings of r components.
 #' Input for \code{\link{ratio_feature}} and Input for \code{\link{aggregate_feature}}.
+#' @param do_ratio Whether to calculate the log ratio of features.
 #' @return A list including all the input and output of functions \code{\link{format_tempted}}, \code{svd_centralize()}, \code{\link{tempted}},
 #' \code{\link{ratio_feature}}, and \code{\link{aggregate_feature}}.
-#' \item{input}{All the input options of function \code{tempted_all()}.}
-#' \item{datlist_raw}{}
-#' \item{datlist}{}
-#' \item{mean_svd}{}
-#' \item{A.hat}{Subject loading, a subject by r matrix.}
-#' \item{B.hat}{Feature loading, a feature by r matrix.}
-#' \item{Phi.hat}{Temporal loading function, a resolution by r matrix.}
-#' \item{time.Phi}{The time points where the temporal loading function is evaluted.}
-#' \item{Lambda}{Eigen value, a length r vector.}
-#' \item{r.square}{Variance explained by each component.
-#' This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using individual components.}
-#' \item{accum.r.square}{Variance explained by the first few components accumulated.
-#' This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using the first few components.}
-#' \item{do_ratio}{Whether to calculate the log ratio of features.}
-#' \item{metafeature.ratio}{The log ratio abundance of the top over bottom ranking features.
-#' It is a data.frame with five columns: "value" for the log ratio values,
-#' "subID" for the subject ID, and "timepoint" for the time points,
-#' and "PC" indicating which component was used to construct the meta feature.}
-#' \item{toppct.ratio}{A matrix of TRUE/FALSE indicating which features are ranked top in each component (and contrast)
-#' and used as the numerator of the log ratio.}
-#' \item{bottompct.ratio}{A matrix of TRUE/FALSE indicating which features are ranked bottom in each component (and contrast)
-#' and used as the denominator of the log ratio.}
-#' #' \item{metafeature.aggregate}{The meta feature obtained by aggregating the observed temporal tensor.
-#' It is a data.frame with four columns: "value" for the meta feature values,
-#' "subID" for the subject ID, "timepoint" for the time points,
-#' and "PC" indicating which component was used to construct the meta feature.}
-#' \item{toppct.aggregate}{A matrix of TRUE/FALSE indicating which features are aggregated in each component and contrast.}
-#' \item{contrast}{The contrast used to linearly combine the components.
-#' It is from the input parameter \code{contrast}.}
+#' \describe{
+#'   \item{input}{All the input options of function \code{tempted_all()}.}
+#'   \item{datalist_raw}{Output of \code{format_tempted()} with option \code{transform="none"}.}
+#'   \item{datlist}{Output of \code{format_tempted()}.}
+#'   \item{mean_svd}{Output of \code{svd_centralize()}.}
+#'   \item{A_hat}{Subject loading, a subject by r matrix.}
+#'   \item{B_hat}{Feature loading, a feature by r matrix.}
+#'   \item{Phi_hat}{Temporal loading function, a resolution by r matrix.}
+#'   \item{time_Phi}{The time points where the temporal loading function is evaluated.}
+#'   \item{Lambda}{Eigen value, a length r vector.}
+#'   \item{r_square}{Variance explained by each component. This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using individual components.}
+#'   \item{accum_r_square}{Variance explained by the first few components accumulated. This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using the first few components.}
+#'   \item{metafeature_ratio}{The log ratio abundance of the top over bottom ranking features. It is a data.frame with five columns: "value" for the log ratio values, "subID" for the subject ID, and "timepoint" for the time points, and "PC" indicating which component was used to construct the meta feature.}
+#'   \item{toppct_ratio}{A matrix of TRUE/FALSE indicating which features are ranked top in each component (and contrast) and used as the numerator of the log ratio.}
+#'   \item{bottompct_ratio}{A matrix of TRUE/FALSE indicating which features are ranked bottom in each component (and contrast) and used as the denominator of the log ratio.}
+#'   \item{metafeature_aggregate}{The meta feature obtained by aggregating the observed temporal tensor. It is a data.frame with four columns: "value" for the meta feature values, "subID" for the subject ID, "timepoint" for the time points, and "PC" indicating which component was used to construct the meta feature.}
+#'   \item{toppct_aggregate}{A matrix of TRUE/FALSE indicating which features are aggregated in each component and contrast.}
+#'   \item{contrast}{The contrast used to linearly combine the components from input.}
+#' }
 #' @examples
 #' # for preprocessed data that do not need to be transformed
 #'
-#' res_processed <- tempted_all(processed_table,
+#' res.processed <- tempted_all(processed_table,
 #'                              meta_table$day_of_life,
 #'                              meta_table$studyid,
 #'                              threshold=1,
@@ -854,72 +805,72 @@ ratio_feature <- function(res_tempted, datlist,
 #'                              smooth=1e-5,
 #'                              do_ratio=FALSE)
 #'
-#' # for count data that will have pseudo_count added and clr transformed
+#' # for count data that will have pseudo added and clr transformed
 #'
-#' res_count <- tempted_all(count_table,
+#' res.count <- tempted_all(count_table,
 #'                          meta_table$day_of_life,
 #'                          meta_table$studyid,
 #'                          threshold=0.95,
 #'                          transform="clr",
-#'                          pseudo_count=0.5,
+#'                          pseudo=0.5,
 #'                          r=2,
 #'                          smooth=1e-5,
-#'                          pct.ratio=0.1,
-#'                          pct.aggregate=1)
+#'                          pct_ratio=0.1,
+#'                          pct_aggregate=1)
 #'
-#' # for proportional data that will have pseudo_count added and clr transformed
+#' # for proportional data that will have pseudo added and clr transformed
 #'
-#' res_proportion <- tempted_all(count_table/rowSums(count_table),
+#' res.proportion <- tempted_all(count_table/rowSums(count_table),
 #'                               meta_table$day_of_life,
 #'                               meta_table$studyid,
 #'                               threshold=0.95,
 #'                               transform="clr",
-#'                               pseudo_count=NULL,
+#'                               pseudo=NULL,
 #'                               r=2,
 #'                               smooth=1e-5,
-#'                               pct.ratio=0.1,
-#'                               pct.aggregate=1)
+#'                               pct_ratio=0.1,
+#'                               pct_aggregate=1)
 #'
 #' # plot the temporal loading and subject trajectories grouped by delivery mode
 #'
-#' plot_time_loading(res_proportion, r=2)
+#' plot_time_loading(res.proportion, r=2)
 #'
 #' group <- unique(meta_table[,c("studyid", "delivery")])
 #'
-#' plot_metafeature(res_proportion$metafeature.aggregate, group, bws=30)
+#' plot_metafeature(res.proportion$metafeature_aggregate, group, bws=30)
 #' @export
 #' @md
-tempted_all <- function(feature_table, time_point, subjectID,
-                        threshold=0.95, pseudo_count=NULL, transform="clr",
+tempted_all <- function(featuretable, timepoint, subjectID,
+                        threshold=0.95, pseudo=NULL, transform="clr",
                         r = 3, smooth=1e-6,
                         interval = NULL, resolution = 51,
-                        maxiter=20, epsilon=1e-4, r.svd=1,
-                        do_ratio=TRUE, pct.ratio=0.05, absolute=FALSE,
-                        pct.aggregate=1, contrast=NULL){
-  datlist <- format_tempted(feature_table=feature_table, time_point=time_point, subjectID=subjectID,
-                            threshold=threshold, pseudo_count=pseudo_count, transform=transform)
-  datlist_raw <- format_tempted(feature_table=feature_table, time_point=time_point, subjectID=subjectID,
-                                threshold=threshold, pseudo_count=pseudo_count, transform="none")
-  mean_svd <- svd_centralize(datlist, r.svd)
+                        maxiter=20, epsilon=1e-4, r_svd=1,
+                        do_ratio=TRUE, pct_ratio=0.05, absolute=FALSE,
+                        pct_aggregate=1, contrast=NULL){
+  datlist <- format_tempted(featuretable=featuretable, timepoint=timepoint, subjectID=subjectID,
+                            threshold=threshold, pseudo=pseudo, transform=transform)
+  datalist_raw <- format_tempted(featuretable=featuretable, timepoint=timepoint, subjectID=subjectID,
+                                threshold=threshold, pseudo=pseudo, transform="none")
+  mean_svd <- svd_centralize(datlist, r_svd)
   res_tempted <- tempted(datlist=mean_svd$datlist, r = r, smooth=smooth,
                          interval = interval, resolution = resolution,
                          maxiter=maxiter, epsilon=epsilon)
   if (do_ratio)
-    res_ratio <- ratio_feature(res_tempted=res_tempted, datlist=datlist_raw,
-                             pct=pct.ratio, absolute=absolute, contrast=contrast)
+    res_ratio <- ratio_feature(res_tempted=res_tempted, datlist=datalist_raw,
+                             pct=pct_ratio, absolute=absolute, contrast=contrast)
   res_aggfeat <- aggregate_feature(res_tempted=res_tempted, mean_svd=mean_svd, datlist=datlist,
-                                   pct=pct.aggregate, contrast=contrast)
+                                   pct=pct_aggregate, contrast=contrast)
   res_all <- list(input=as.list(match.call()))
-  res_all$datlist_raw <- datlist_raw
+  res_all$datalist_raw <- datalist_raw
   res_all$datlist <- datlist
   res_all <- append(res_all, res_tempted)
   if (do_ratio){
-    res_all$metafeature.ratio <- res_ratio$metafeature.ratio
-    res_all$toppct.ratio <- res_ratio$toppct
-    res_all$bottompct.ratio <- res_ratio$toppct
+    res_all$metafeature_ratio <- res_ratio$metafeature_ratio
+    res_all$toppct_ratio <- res_ratio$toppct
+    res_all$bottompct_ratio <- res_ratio$toppct
   }
-  res_all$metafeature.aggregate <- res_aggfeat$metafeature.aggregate
-  res_all$toppct.aggregate <- res_aggfeat$toppct
+  res_all$metafeature_aggregate <- res_aggfeat$metafeature_aggregate
+  res_all$toppct_aggregate <- res_aggfeat$toppct
   res_all$contrast <- contrast
   return(res_all)
 }
@@ -942,11 +893,11 @@ tempted_all <- function(feature_table, time_point, subjectID,
 #' @examples
 #' # plot the summary of selected features
 #'
-#' feat_names <- c("OTU4447072", "OTU4467447")
+#' feat.names <- c("OTU4447072", "OTU4467447")
 #'
 #' proportion_table <- count_table/rowSums(count_table)
 #'
-#' plot_feature_summary(proportion_table[,feat_names],
+#' plot_feature_summary(proportion_table[,feat.names],
 #'                      meta_table$day_of_life,
 #'                      meta_table$delivery,
 #'                      bws=30)
@@ -955,7 +906,7 @@ tempted_all <- function(feature_table, time_point, subjectID,
 plot_feature_summary <- function(feature_mat, time_vec, group_vec,
                                    coverage=0.95, bws=NULL, nrow=1){
   nfeature <- ncol(feature_mat)
-  if(class(group_vec)!='factor') group_vec <- as.factor(group_vec)
+  if(!is(group_vec, "factor")) group_vec <- as.factor(group_vec)
   group_level <- levels(group_vec)
   time_all <- NULL
   mean_all <- NULL
@@ -968,15 +919,15 @@ plot_feature_summary <- function(feature_mat, time_vec, group_vec,
     for (ii in 1:length(group_level)){
       ind <- group_vec==group_level[ii]
       if(is.null(bws)){
-        model.np <- npreg(feature_mat[ind,jj]~time_vec[ind],
+        model_np <- npreg(feature_mat[ind,jj]~time_vec[ind],
                           regtyle="ll", bwmethod="cv.aic")
       }else{
-        model.np <- npreg(feature_mat[ind,jj]~time_vec[ind], bws=bws,
+        model_np <- npreg(feature_mat[ind,jj]~time_vec[ind], bws=bws,
                           regtyle="ll", bwmethod="cv.aic")
       }
-      time_eval <- as.vector(t(model.np$eval))
-      mean_eval <- model.np$mean[order(time_eval)]
-      merr_eval <- model.np$merr[order(time_eval)]
+      time_eval <- as.vector(t(model_np$eval))
+      mean_eval <- model_np$mean[order(time_eval)]
+      merr_eval <- model_np$merr[order(time_eval)]
       time_eval <- sort(time_eval)
 
       time_all <- c(time_all, time_eval)
@@ -989,26 +940,26 @@ plot_feature_summary <- function(feature_mat, time_vec, group_vec,
     }
   }
   group_all <- factor(group_all, levels=group_level)
-  tab_summary <- data.frame(time=time_all, mean=mean_all, merr=merr_all,
+  tab_summary <- data.frame(timepoint=time_all, mean_value=mean_all, merr_value=merr_all,
                             group=group_all, feature=feature_all)
 
   p_summary <- ggplot(data=tab_summary,
-                      aes(x=time, y=mean, group=group, color=group)) +
+                      aes(x=tab_summary$timepoint, y=tab_summary$mean_value, group=tab_summary$group, color=tab_summary$group)) +
     geom_line() +
-    geom_ribbon(aes(ymin=mean-CI_length*merr, ymax=mean+CI_length*merr,
-                    color=group, fill=group), linetype=2, alpha=0.3) +
+    geom_ribbon(aes(ymin=tab_summary$mean_value-CI_length*tab_summary$merr_value, ymax=tab_summary$merr_value+CI_length*tab_summary$merr_value,
+                    color=tab_summary$group, fill=tab_summary$group), linetype=2, alpha=0.3) +
     ylab(paste0('mean +/- ', round(CI_length,2), '*se')) + facet_wrap(.~feature, scales="free", nrow=nrow)
   return(p_summary)
 }
 
 
 
-#' @title Plot nonparametric smoothed mean and error bands of meta features versus time
+#' @title Plot nonparametric smoothed mesan and error bands of meta features versus time
 #' @description This function plot the smoothed mean and error band of meta features
 #' grouped by a factor variable provided by the user.
-#' @param metafeature It can be \code{metafeature.ratio} from the output of \code{\link{ratio_feature}} and \code{tempted_all()},
-#' \code{metafeature.aggregate} from the output of \code{\link{ratio_feature}} and \code{tempted_all()},
-#' or \code{metafeature.aggregate.est} from the output of \code{\link{ratio_feature}}.
+#' @param metafeature It can be \code{metafeature_ratio} from the output of \code{\link{ratio_feature}} and \code{tempted_all()},
+#' \code{metafeature_aggregate} from the output of \code{\link{ratio_feature}} and \code{tempted_all()},
+#' or \code{metafeature_aggregate_est} from the output of \code{\link{ratio_feature}}.
 #' @param group A subject by 2 data.frame with the first column for subject ID and second column for group membership.
 #' @param coverage The coverage rate for the error band. Default is 0.95.
 #' @param bws The smoothness parameter for the smoothing lines and error bands.
@@ -1051,13 +1002,13 @@ plot_metafeature <- function(metafeature, group,
 #' @export
 #' @md
 plot_time_loading <- function(res, r=NULL, ...){
-  Phi.data <- res$Phi.hat
-  if(is.null(r)) r <- ncol(Phi.data)
-  Phi.data <- Phi.data[,1:r]
-  ntime <- nrow(Phi.data)
-  Phi.data <- data.frame(time=res$time.Phi, value=as.vector(Phi.data),
+  Phi_data <- res$Phi_hat
+  if(is.null(r)) r <- ncol(Phi_data)
+  Phi_data <- Phi_data[,1:r]
+  ntime <- nrow(Phi_data)
+  Phi_data <- data.frame(timepoint=res$time_Phi, value=as.vector(Phi_data),
                          component=as.factor(as.vector(t(matrix(rep(1:r,ntime),r,)))))
-  ptime <- ggplot(data=Phi.data, aes(x=time, y=value, color=component)) + geom_line(aes(...))
+  ptime <- ggplot(data=Phi_data, aes(x=Phi_data$timepoint, y=Phi_data$value, color=Phi_data$component)) + geom_line(aes(...))
   return(ptime)
 }
 
@@ -1066,9 +1017,9 @@ plot_time_loading <- function(res, r=NULL, ...){
 #' @format A data.frame with rows representing samples and matching with data.frame \code{count_table} and \code{processed_table}
 #' and three columns:
 #' \describe{
-#' \item{studyid}{character denoting the subject ID of the infants.}
-#' \item{delivery}{character denoting the delivery mode of the infants.}
-#' \item{day_of_life}{character denoting the age of infants measured in days when microbiome sample was taken.}
+#'     \item{studyid}{character denoting the subject ID of the infants.}
+#'     \item{delivery}{character denoting the delivery mode of the infants.}
+#'     \item{day_of_life}{character denoting the age of infants measured in days when microbiome sample was taken.}
 #' }
 #' @source Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
 #' @md

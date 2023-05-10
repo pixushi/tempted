@@ -5,7 +5,7 @@
 \alias{count_table}
 \title{OTU read count table from the ECAM data}
 \format{
-A data.frame with rows matching with data.frame \code{meta_table}
+A data.frame with rows representing samples and matching with data.frame \code{meta_table}
 and columns representing microbial features (i.e. OTUs). Each entry is a read count.
 }
 \source{

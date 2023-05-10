@@ -41,15 +41,15 @@ Default is set to 101. It does not affect the subject or feature loadings.}
 }
 \value{
 The estimations of the loadings.
-\item{A.hat}{Subject loading, a subject by r matrix.}
-\item{B.hat}{Feature loading, a feature by r matrix.}
-\item{Phi.hat}{Temporal loading function, a resolution by r matrix.}
-\item{time.Phi}{The time points where the temporal loading function is evaluted.}
+\describe{
+\item{A_hat}{Subject loading, a subject by r matrix.}
+\item{B_hat}{Feature loading, a feature by r matrix.}
+\item{Phi_hat}{Temporal loading function, a resolution by r matrix.}
+\item{time_Phi}{The time points where the temporal loading function is evaluated.}
 \item{Lambda}{Eigen value, a length r vector.}
-\item{r.square}{Variance explained by each component.
-This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using individual components.}
-\item{accum.r.square}{Variance explained by the first few components accumulated.
-This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using the first few components.}
+\item{r_square}{Variance explained by each component. This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using individual components.}
+\item{accum_r_square}{Variance explained by the first few components accumulated. This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using the first few components.}
+}
 }
 \description{
 This is the main function of tempted.
@@ -60,7 +60,7 @@ This is the main function of tempted.
 datlist <- format_tempted(count_table,
                           meta_table$day_of_life,
                           meta_table$studyid,
-                          pseudo_count=0.5,
+                          pseudo=0.5,
                           transform="clr")
 
 mean_svd <- svd_centralize(datlist, r=1)
@@ -72,7 +72,7 @@ res_tempted <- tempted(mean_svd$datlist, r=3, smooth=1e-5)
 datlist <- format_tempted(processed_table,
                           meta_table$day_of_life,
                           meta_table$studyid,
-                          pseudo_count=NULL,
+                          pseudo=NULL,
                           transform="none")
 
 mean_svd <- svd_centralize(datlist, r=1)

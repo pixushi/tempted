@@ -39,7 +39,7 @@ datlist_train <- format_tempted(count_train,
                                 meta_train$day_of_life,
                                 meta_train$studyid,
                                 threshold=0.95,
-                                pseudo_count=0.5,
+                                pseudo=0.5,
                                 transform="clr")
 
 mean_svd_train <- svd_centralize(datlist_train, r=1)
@@ -55,7 +55,7 @@ datlist_test <- format_tempted(count_test,
                                meta_test$day_of_life,
                                meta_test$studyid,
                                threshold=1,
-                               pseudo_count=0.5,
+                               pseudo=0.5,
                                transform="clr")
 
 # estimate the subject loading of the testing subject

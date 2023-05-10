@@ -57,10 +57,10 @@ metauni <- unique(meta_table[,c('studyid', 'delivery')])
 
 The goal of tempted is to perform dimensionality reduction for multivariate longitudinal data, with a special attention to longitudinal mirobiome studies. This document is split into four sections:
 
-1. Run TEMPTED for Microbiome Count Data (Straightforward Way)
-2. Run TEMPTED for Microbiome Compositional Data (Straightforward Way)
-3. Run TEMPTED for General Form of Multivariate Longitudinal Data (Straightforward Way)
-4. Run TEMPTED in Customized Way
+1.  Run TEMPTED for Microbiome Count Data (Straightforward Way)
+2.  Run TEMPTED for Microbiome Compositional Data (Straightforward Way)
+3.  Run TEMPTED for General Form of Multivariate Longitudinal Data (Straightforward Way)
+4.  Run TEMPTED in Customized Way
 
 ### Run TEMPTED for Microbiome Count Data (Straightforward Way)
 
@@ -75,10 +75,10 @@ A complete description of all parameters can be found in the pdf manual. Here we
 -   `smooth`: Smoothing parameter for RKHS norm. Larger means smoother temporal loading functions. Default is set to be 1e-8. Value can be adjusted depending on the dataset by checking the smoothness of the estimated temporal loading function in plot.
 -   `transform`: The transformation applied to the data. "log_comp" for log of compositions. "comp" for compositions. "ast" for arcsine squared transformation. "clr" for central log ratio transformation. "logit" for logit transformation. "none" for no transformation. Default transform="clr" is recommended for microbiome data. For data that are already transformed, use transform="none".
 -   `r`: Number of components to decompose into, i.e. rank of the CP type decomposition. Default is set to 3.
--   `pct.ratio`: The percent of features to sum up for taking log ratios. Default is 0.05, i.e. 5%.
--   `absolute`: `absolute = TRUE` means features are ranked by the absolute value of feature loadings, and the top `pct.ratio` percent of features are picked. `absolute = FALSE` means features are ranked by the original value of feature loadings, and the top and bottom `pct.ratio` percent of features are picked. Then ratio is taken as the abundance of the features with positive loading over the abundance of the features with negative loading. Input for ratio_feature.
--   `pct.aggregate`: The percent of features to aggregate, features ranked by absolute value of the feature loading of each component. Default is 1, which means 100% of features are aggregated. Setting pct.aggregate=0.01 means top 1% of features is aggregated, where features are ranked in absolute value of feature loading of each component. Input for aggregate_feature.
--   `pseudo_count`: A small number to add to all the counts before normalizing into proportions and log transformation. Default is 1/2 of the smallest non-zero value that is specific for each sample. This pseudo count is added for `transform=c("log_comp", "clr", "logit")`.
+-   `pct_ratio`: The percent of features to sum up for taking log ratios. Default is 0.05, i.e. 5%.
+-   `absolute`: `absolute = TRUE` means features are ranked by the absolute value of feature loadings, and the top `pct_ratio` percent of features are picked. `absolute = FALSE` means features are ranked by the original value of feature loadings, and the top and bottom `pct_ratio` percent of features are picked. Then ratio is taken as the abundance of the features with positive loading over the abundance of the features with negative loading. Input for ratio_feature.
+-   `pct_aggregate`: The percent of features to aggregate, features ranked by absolute value of the feature loading of each component. Default is 1, which means 100% of features are aggregated. Setting pct_aggregate=0.01 means top 1% of features is aggregated, where features are ranked in absolute value of feature loading of each component. Input for aggregate_feature.
+-   `pseudo`: A small number to add to all the counts before normalizing into proportions and log transformation. Default is 1/2 of the smallest non-zero value that is specific for each sample. This pseudo count is added for `transform=c("log_comp", "clr", "logit")`.
 
 **IMPORTANT NOTE:** In matrix singular value decomposition, the sign of subject scores and feature loadings can be flipped together. Similarly, you can flip the signs of any pair of subject loadings, feature loadings, and temporal loadings.
 
@@ -88,23 +88,23 @@ res_count <- tempted_all(count_table,
                          meta_table$studyid,
                          threshold=0.95,
                          transform="clr",
-                         pseudo_count=0.5,
+                         pseudo=0.5,
                          r=2,
                          smooth=1e-5,
-                         pct.ratio=0.1,
-                         pct.aggregate=1)
+                         pct_ratio=0.1,
+                         pct_aggregate=1)
 ```
 
 #### Low-dimensional representation of subjects
 
-Subject loadings are stored in variable `A.hat` of the `tempted_all()` output.
+Subject loadings are stored in variable `A_hat` of the `tempted_all()` output.
 
 ```{r plot_sub_loading, message=FALSE, warning=FALSE}
-A.data <- metauni
-rownames(A.data) <- A.data$studyid
-A.data <- cbind(res_count$A.hat[rownames(A.data),], A.data)
+A_data <- metauni
+rownames(A_data) <- A_data$studyid
+A_data <- cbind(res_count$A_hat[rownames(A_data),], A_data)
 
-p_subj <- ggplot(data=A.data, aes(x=A.data[,1], y=A.data[,2], color=delivery)) + 
+p_subj <- ggplot(data=A_data, aes(x=A_data[,1], y=A_data[,2], color=delivery)) + 
   geom_point() +
   labs(x='Component 1', y='Component 2', title='subject loading') 
 print(p_subj)
@@ -112,7 +112,7 @@ print(p_subj)
 
 #### Plot the temporal loadings
 
-Temporal loadings are stored in variable `Phi.hat` of the `tempted_all()` output. We provide an R function `plot_time_loading()` to plot these curves. Option `r` lets you decide how many components to plot.
+Temporal loadings are stored in variable `Phi_hat` of the `tempted_all()` output. We provide an R function `plot_time_loading()` to plot these curves. Option `r` lets you decide how many components to plot.
 
 ```{r plot_time_loading, message=FALSE, warning=FALSE}
 p_time <- plot_time_loading(res_count, r=2) + 
@@ -123,10 +123,10 @@ print(p_time)
 
 #### Plot the feature loadings
 
-Feature loadings are stored in variable `B.hat` of the `tempted_all()` output.
+Feature loadings are stored in variable `B_hat` of the `tempted_all()` output.
 
 ```{r plot_feature_loading, message=FALSE, warning=FALSE}
-p_feature <- ggplot(as.data.frame(res_count$B.hat), aes(x=`Component 1`, y=`Component 2`)) + 
+p_feature <- ggplot(as.data.frame(res_count$B_hat), aes(x=`Component 1`, y=`Component 2`)) + 
   geom_point() + 
   labs(x='Component 1', y='Component 2', title='feature loading')
 print(p_feature)
@@ -134,20 +134,20 @@ print(p_feature)
 
 #### Plot log ratio of top features
 
-The log ratios are stored in variable `metafeature.ratio` of the `tempted_all()` output.
+The log ratios are stored in variable `metafeature_ratio` of the `tempted_all()` output.
 
 ```{r plot_log_ratio, message=FALSE, warning=FALSE}
 group <- unique(meta_table[,c("studyid", "delivery")])
-plot_metafeature(res_count$metafeature.ratio, group) + xlab("Days of Life")
+plot_metafeature(res_count$metafeature_ratio, group) + xlab("Days of Life")
 ```
 
 #### Plot subject trajectories
 
-The subject trajectores are stored in `metafeature.aggregate` of the `tempted_all()` output.
+The subject trajectores are stored in `metafeature_aggregate` of the `tempted_all()` output.
 
 ```{r plot_sub_traj, message=FALSE, warning=FALSE}
 group <- unique(meta_table[,c("studyid", "delivery")])
-plot_metafeature(res_count$metafeature.aggregate, group) + xlab("Days of Life")
+plot_metafeature(res_count$metafeature_aggregate, group) + xlab("Days of Life")
 ```
 
 #### Low-dimensional representation of samples
@@ -155,7 +155,7 @@ plot_metafeature(res_count$metafeature.aggregate, group) + xlab("Days of Life")
 This is an alternative way to visualize the subject trajectories. Instead of plotting against the time points, you can visualize the samples in low-dimensional spaces.
 
 ```{r plot_aggfeat_scatter, message=FALSE, warning=FALSE}
-tab_feat_obs <- res_count$metafeature.aggregate
+tab_feat_obs <- res_count$metafeature_aggregate
 colnames(tab_feat_obs)[2] <- 'studyid'
 tab_feat_obs <- merge(tab_feat_obs, metauni)
 
@@ -186,7 +186,7 @@ p_aggfeat_scatter2
 
 #### Run TEMPTED
 
-**IMPORTANT NOTE**: Different form the count data, `pseudo_count = NULL` is used so that 1/2 of the smallest non-zero value is added to each sample. This pseudo count is added for transform=c("log_comp", "clr", "logit").
+**IMPORTANT NOTE**: Different form the count data, `pseudo = NULL` is used so that 1/2 of the smallest non-zero value is added to each sample. This pseudo count is added for transform=c("log_comp", "clr", "logit").
 
 ```{r tempted_all_proportion}
 proportion_table <- count_table/rowSums(count_table)
@@ -195,7 +195,7 @@ res_proportion <- tempted_all(proportion_table,
                               meta_table$studyid,
                               threshold=0.95,
                               transform="clr",
-                              pseudo_count=NULL,
+                              pseudo=NULL,
                               r=2,
                               smooth=1e-5)
 ```
@@ -203,11 +203,11 @@ res_proportion <- tempted_all(proportion_table,
 #### Low-dimensional representation of subjects
 
 ```{r plot_sub_loading2, message=FALSE, warning=FALSE}
-A.data <- metauni
-rownames(A.data) <- A.data$studyid
-A.data <- cbind(res_proportion$A.hat[rownames(A.data),], A.data)
+A_data <- metauni
+rownames(A_data) <- A_data$studyid
+A_data <- cbind(res_proportion$A_hat[rownames(A_data),], A_data)
 
-p_subj <- ggplot(data=A.data, aes(x=A.data[,1], y=A.data[,2], color=delivery)) + 
+p_subj <- ggplot(data=A_data, aes(x=A_data[,1], y=A_data[,2], color=delivery)) + 
   geom_point() + 
   labs(x='Component 1', y='Component 2', title='subject loading') 
 print(p_subj)
@@ -225,7 +225,7 @@ print(p_time)
 #### Plot the feature loadings
 
 ```{r plot_feature_loading2, message=FALSE, warning=FALSE}
-pfeature <- ggplot(as.data.frame(res_proportion$B.hat), aes(x=`Component 1`, y=`Component 2`)) + 
+pfeature <- ggplot(as.data.frame(res_proportion$B_hat), aes(x=`Component 1`, y=`Component 2`)) + 
   geom_point() + 
   labs(x='Component 1', y='Component 2', title='feature loading')
 print(pfeature)
@@ -235,14 +235,14 @@ print(pfeature)
 
 ```{r plot_log_ratio2, message=FALSE, warning=FALSE}
 group <- unique(meta_table[,c("studyid", "delivery")])
-plot_metafeature(res_proportion$metafeature.ratio, group) + xlab("Days of Life")
+plot_metafeature(res_proportion$metafeature_ratio, group) + xlab("Days of Life")
 ```
 
 #### Plot subject trajectories
 
 ```{r plot_sub_traj2, message=FALSE, warning=FALSE}
 group <- unique(meta_table[,c("studyid", "delivery")])
-plot_metafeature(res_proportion$metafeature.aggregate, group) + xlab("Days of Life")
+plot_metafeature(res_proportion$metafeature_aggregate, group) + xlab("Days of Life")
 ```
 
 #### Low-dimensional representation of samples
@@ -250,7 +250,7 @@ plot_metafeature(res_proportion$metafeature.aggregate, group) + xlab("Days of Li
 This is an alternative way to visualize the subject trajectories. Instead of plotting against the time points, you can visualize the samples in low-dimensional spaces.
 
 ```{r plot_aggfeat_scatter2, message=FALSE, warning=FALSE}
-tab_feat_obs <- res_proportion$metafeature.aggregate
+tab_feat_obs <- res_proportion$metafeature_aggregate
 colnames(tab_feat_obs)[2] <- 'studyid'
 tab_feat_obs <- merge(tab_feat_obs, metauni)
 
@@ -297,11 +297,11 @@ res_processed <- tempted_all(processed_table,
 #### Low-dimensional representation of subjects
 
 ```{r plot_sub_loading3, message=FALSE, warning=FALSE}
-A.data <- metauni
-rownames(A.data) <- A.data$studyid
-A.data <- cbind(res_processed$A.hat[rownames(A.data),], A.data)
+A_data <- metauni
+rownames(A_data) <- A_data$studyid
+A_data <- cbind(res_processed$A_hat[rownames(A_data),], A_data)
 
-p_subj <- ggplot(data=A.data, aes(x=A.data[,1], y=A.data[,2], color=delivery)) + 
+p_subj <- ggplot(data=A_data, aes(x=A_data[,1], y=A_data[,2], color=delivery)) + 
   geom_point() + 
   labs(x='Component 1', y='Component 2', title='subject loading') 
 print(p_subj)
@@ -319,7 +319,7 @@ print(p_time)
 #### Plot the feature loadings
 
 ```{r plot_feature_loading3, message=FALSE, warning=FALSE}
-pfeature <- ggplot(as.data.frame(res_processed$B.hat), aes(x=`Component 1`, y=`Component 2`)) + 
+pfeature <- ggplot(as.data.frame(res_processed$B_hat), aes(x=`Component 1`, y=`Component 2`)) + 
   geom_point() + 
   labs(x='Component 1', y='Component 2', title='feature loading')
 print(pfeature)
@@ -329,13 +329,13 @@ print(pfeature)
 
 ```{r plot_sub_traj3, message=FALSE, warning=FALSE}
 group <- unique(meta_table[,c("studyid", "delivery")])
-plot_metafeature(res_processed$metafeature.aggregate, group) + xlab("Days of Life")
+plot_metafeature(res_processed$metafeature_aggregate, group) + xlab("Days of Life")
 ```
 
 #### Low-dimensional representation of samples
 
 ```{r plot_aggfeat_scatter3, message=FALSE, warning=FALSE}
-tab_feat_obs <- res_processed$metafeature.aggregate
+tab_feat_obs <- res_processed$metafeature_aggregate
 colnames(tab_feat_obs)[2] <- 'studyid'
 tab_feat_obs <- merge(tab_feat_obs, metauni)
 
@@ -368,13 +368,13 @@ This is a breakdown of what `tempted_all()` does in each function it wraps into.
 
 #### Format and Transform Data
 
-The function `format_tempted()` transforms the sample-by-feature table and the corresponding time points and subject IDs into the list format that is accepted by `tempted()`. It filters features with a lot of zeros, perform transformation of the features, and add pseudo count for transformations that cannot handle zeros. When a subject has multiple samples from the same time point, `format_tempted()` will only keep the first sample in the data input. 
+The function `format_tempted()` transforms the sample-by-feature table and the corresponding time points and subject IDs into the list format that is accepted by `tempted()`. It filters features with a lot of zeros, perform transformation of the features, and add pseudo count for transformations that cannot handle zeros. When a subject has multiple samples from the same time point, `format_tempted()` will only keep the first sample in the data input.
 
-**IMPORTANT NOTE**: For read count table as `feature_table`, set `pseudo_count=0.5`. For compositional data as `feature_table`, default setting is appropriate. For non-microbiome data, set `transform="none"` and `threshold=1`.
+**IMPORTANT NOTE**: For read count table as `feature_table`, set `pseudo=0.5`. For compositional data as `feature_table`, default setting is appropriate. For non-microbiome data, set `transform="none"` and `threshold=1`.
 
 ```{r format_data, message=FALSE, warning=FALSE}
 # format the data frames into a list that can be used by TEMPTED
-datlist <- format_tempted(count_table, meta_table$day_of_life, meta_table$studyid, threshold=0.95, pseudo_count=0.5, transform="clr")
+datlist <- format_tempted(count_table, meta_table$day_of_life, meta_table$studyid, threshold=0.95, pseudo=0.5, transform="clr")
 length(datlist)
 print(dim(datlist[[1]]))
 ```
@@ -398,7 +398,7 @@ The output of `tempted()` can be used in the same way as the output of `tempted_
 
 #### Log ratio of top/bottom feature
 
-The feature loadings can be used to rank features. The abundance ratio of top ranking features over bottom ranking features corresponding to each component can be a biologically meaningful marker. We provide an R function `ratio_feature()` to calculate such the abundance ratio. The abundance ratio is stored in the output variable `metafeature.ratio` in the output. An TRUE/FALSE vector indicating whether the feature is in the top ranking or bottom ranking is stored in variable `toppct` and `bottompct`, respectively. Below are trajectories of the aggregated features using observed data. Users can choose the percentage for the cutoff of top/bottom ranking features through option `pct` (by default `pct=0.05`). By default `absolute=TRUE` means the features are chosen if they rank in the top `pct` percentile in the absolute value of the feature loadings, and abundance ratio is taken between the features with positive loadings over negative loadings. When `absolute=FALSE`, the features are chose if they rank in the top `pct` percentile and has positive loading or rank in the bottom `pct` percentile and has negative loading. We also provide an option `contrast` allowing users to rank features using linear combinations of the feature loadings from different components.
+The feature loadings can be used to rank features. The abundance ratio of top ranking features over bottom ranking features corresponding to each component can be a biologically meaningful marker. We provide an R function `ratio_feature()` to calculate such the abundance ratio. The abundance ratio is stored in the output variable `metafeature_ratio` in the output. An TRUE/FALSE vector indicating whether the feature is in the top ranking or bottom ranking is stored in variable `toppct` and `bottompct`, respectively. Below are trajectories of the aggregated features using observed data. Users can choose the percentage for the cutoff of top/bottom ranking features through option `pct` (by default `pct=0.05`). By default `absolute=TRUE` means the features are chosen if they rank in the top `pct` percentile in the absolute value of the feature loadings, and abundance ratio is taken between the features with positive loadings over negative loadings. When `absolute=FALSE`, the features are chose if they rank in the top `pct` percentile and has positive loading or rank in the bottom `pct` percentile and has negative loading. We also provide an option `contrast` allowing users to rank features using linear combinations of the feature loadings from different components.
 
 ```{r plot_ratio_traj_breakdown, message=FALSE, warning=FALSE}
 datlist_raw <- format_tempted(count_table, meta_table$day_of_life, meta_table$studyid, 
@@ -408,7 +408,7 @@ contrast
 
 ratio_feat <- ratio_feature(res_tempted, datlist_raw,
                         contrast=contrast, pct=0.1)
-tab_feat_obs <- ratio_feat$metafeature.ratio
+tab_feat_obs <- ratio_feat$metafeature_ratio
 colnames(tab_feat_obs)[2] <- 'studyid'
 tab_feat_obs <- merge(tab_feat_obs, metauni)
 colnames(tab_feat_obs)
@@ -416,21 +416,21 @@ p_feat_obs <- ggplot(data=tab_feat_obs,
                       aes(x=timepoint, y=value, group=studyid, color=delivery)) +
   geom_line() + facet_wrap(.~PC, scales="free", nrow=1) + xlab("Days of Life")
 
-p_feat_obs_summary <- plot_metafeature(ratio_feat$metafeature.ratio, group, bws=30, nrow=1) + xlab("Days of Life")
+p_feat_obs_summary <- plot_metafeature(ratio_feat$metafeature_ratio, group, bws=30, nrow=1) + xlab("Days of Life")
 
 grid.arrange(p_feat_obs, p_feat_obs_summary, nrow=2)
 ```
 
 #### Subject trajectories
 
-The feature loadings can be used as weights to aggregate features. The aggregation can be done using the low-rank denoised data tensor, or the original observed data tensor. We provide an R function `aggregate_feature()` to perform the aggregation. The aggregated features using low-rank denoised tensor is stored in variable `metafeature.aggregate.est` and the aggregated features using observed data is stored in variable `metafeature.aggregate`. Below are trajectories of the aggregated features using observed data. Only the features with absolute loading in the top pct percentile (by default set to 100%, i.e. all features, through option `pct=1`) are used for the aggregation. We also provide an option `contrast` allowing users to aggregate features using linear combinations of the feature loadings from different components.
+The feature loadings can be used as weights to aggregate features. The aggregation can be done using the low-rank denoised data tensor, or the original observed data tensor. We provide an R function `aggregate_feature()` to perform the aggregation. The aggregated features using low-rank denoised tensor is stored in variable `metafeature_aggregate_est` and the aggregated features using observed data is stored in variable `metafeature_aggregate`. Below are trajectories of the aggregated features using observed data. Only the features with absolute loading in the top pct percentile (by default set to 100%, i.e. all features, through option `pct=1`) are used for the aggregation. We also provide an option `contrast` allowing users to aggregate features using linear combinations of the feature loadings from different components.
 
 ```{r plot_sub_traj_breakdown, message=FALSE, warning=FALSE}
 ## observed, by individual subject
 contrast <- cbind(c(1/2,1), c(1/2,-1))
 agg_feat <- aggregate_feature(res_tempted, svd_tempted, datlist, 
                               contrast=contrast, pct=1)
-tab_feat_obs <- agg_feat$metafeature.aggregate
+tab_feat_obs <- agg_feat$metafeature_aggregate
 colnames(tab_feat_obs)[2] <- 'studyid'
 tab_feat_obs <- merge(tab_feat_obs, metauni)
 colnames(tab_feat_obs)
@@ -438,7 +438,7 @@ p_feat_obs <- ggplot(data=tab_feat_obs,
                       aes(x=timepoint, y=value, group=studyid, color=delivery)) +
   geom_line() + facet_wrap(.~PC, scales="free", nrow=1) + xlab("Days of Life")
 
-p_feat_obs_summary <- plot_metafeature(agg_feat$metafeature.aggregate, group, bws=30, nrow=1) + xlab("Days of Life")
+p_feat_obs_summary <- plot_metafeature(agg_feat$metafeature_aggregate, group, bws=30, nrow=1) + xlab("Days of Life")
 
 grid.arrange(p_feat_obs, p_feat_obs_summary, nrow=2)
 ```

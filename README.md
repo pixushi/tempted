@@ -97,25 +97,25 @@ Here we explain the key parameters:
   that are already transformed, use transform=“none”.
 - `r`: Number of components to decompose into, i.e. rank of the CP type
   decomposition. Default is set to 3.
-- `pct.ratio`: The percent of features to sum up for taking log ratios.
+- `pct_ratio`: The percent of features to sum up for taking log ratios.
   Default is 0.05, i.e. 5%.
 - `absolute`: `absolute = TRUE` means features are ranked by the
-  absolute value of feature loadings, and the top `pct.ratio` percent of
+  absolute value of feature loadings, and the top `pct_ratio` percent of
   features are picked. `absolute = FALSE` means features are ranked by
   the original value of feature loadings, and the top and bottom
-  `pct.ratio` percent of features are picked. Then ratio is taken as the
+  `pct_ratio` percent of features are picked. Then ratio is taken as the
   abundance of the features with positive loading over the abundance of
   the features with negative loading. Input for ratio_feature.
-- `pct.aggregate`: The percent of features to aggregate, features ranked
+- `pct_aggregate`: The percent of features to aggregate, features ranked
   by absolute value of the feature loading of each component. Default is
   1, which means 100% of features are aggregated. Setting
-  pct.aggregate=0.01 means top 1% of features is aggregated, where
+  pct_aggregate=0.01 means top 1% of features is aggregated, where
   features are ranked in absolute value of feature loading of each
   component. Input for aggregate_feature.
-- `pseudo_count`: A small number to add to all the counts before
-  normalizing into proportions and log transformation. Default is 1/2 of
-  the smallest non-zero value that is specific for each sample. This
-  pseudo count is added for `transform=c("log_comp", "clr", "logit")`.
+- `pseudo`: A small number to add to all the counts before normalizing
+  into proportions and log transformation. Default is 1/2 of the
+  smallest non-zero value that is specific for each sample. This pseudo
+  count is added for `transform=c("log_comp", "clr", "logit")`.
 
 **IMPORTANT NOTE:** In matrix singular value decomposition, the sign of
 subject scores and feature loadings can be flipped together. Similarly,
@@ -128,11 +128,11 @@ res_count <- tempted_all(count_table,
                          meta_table$studyid,
                          threshold=0.95,
                          transform="clr",
-                         pseudo_count=0.5,
+                         pseudo=0.5,
                          r=2,
                          smooth=1e-5,
-                         pct.ratio=0.1,
-                         pct.aggregate=1)
+                         pct_ratio=0.1,
+                         pct_aggregate=1)
 #> [1] "Calculate the 1th Component"
 #> [1] "Convergence reached at dif=3.57400411456435e-05, iter=4"
 #> [1] "Calculate the 2th Component"
@@ -141,15 +141,15 @@ res_count <- tempted_all(count_table,
 
 #### Low-dimensional representation of subjects
 
-Subject loadings are stored in variable `A.hat` of the `tempted_all()`
+Subject loadings are stored in variable `A_hat` of the `tempted_all()`
 output.
 
 ``` r
-A.data <- metauni
-rownames(A.data) <- A.data$studyid
-A.data <- cbind(res_count$A.hat[rownames(A.data),], A.data)
+A_data <- metauni
+rownames(A_data) <- A_data$studyid
+A_data <- cbind(res_count$A_hat[rownames(A_data),], A_data)
 
-p_subj <- ggplot(data=A.data, aes(x=A.data[,1], y=A.data[,2], color=delivery)) + 
+p_subj <- ggplot(data=A_data, aes(x=A_data[,1], y=A_data[,2], color=delivery)) + 
   geom_point() +
   labs(x='Component 1', y='Component 2', title='subject loading') 
 print(p_subj)
@@ -159,7 +159,7 @@ print(p_subj)
 
 #### Plot the temporal loadings
 
-Temporal loadings are stored in variable `Phi.hat` of the
+Temporal loadings are stored in variable `Phi_hat` of the
 `tempted_all()` output. We provide an R function `plot_time_loading()`
 to plot these curves. Option `r` lets you decide how many components to
 plot.
@@ -175,11 +175,11 @@ print(p_time)
 
 #### Plot the feature loadings
 
-Feature loadings are stored in variable `B.hat` of the `tempted_all()`
+Feature loadings are stored in variable `B_hat` of the `tempted_all()`
 output.
 
 ``` r
-p_feature <- ggplot(as.data.frame(res_count$B.hat), aes(x=`Component 1`, y=`Component 2`)) + 
+p_feature <- ggplot(as.data.frame(res_count$B_hat), aes(x=`Component 1`, y=`Component 2`)) + 
   geom_point() + 
   labs(x='Component 1', y='Component 2', title='feature loading')
 print(p_feature)
@@ -189,12 +189,12 @@ print(p_feature)
 
 #### Plot log ratio of top features
 
-The log ratios are stored in variable `metafeature.ratio` of the
+The log ratios are stored in variable `metafeature_ratio` of the
 `tempted_all()` output.
 
 ``` r
 group <- unique(meta_table[,c("studyid", "delivery")])
-plot_metafeature(res_count$metafeature.ratio, group) + xlab("Days of Life")
+plot_metafeature(res_count$metafeature_ratio, group) + xlab("Days of Life")
 #> Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   
 ```
 
@@ -202,12 +202,12 @@ plot_metafeature(res_count$metafeature.ratio, group) + xlab("Days of Life")
 
 #### Plot subject trajectories
 
-The subject trajectores are stored in `metafeature.aggregate` of the
+The subject trajectores are stored in `metafeature_aggregate` of the
 `tempted_all()` output.
 
 ``` r
 group <- unique(meta_table[,c("studyid", "delivery")])
-plot_metafeature(res_count$metafeature.aggregate, group) + xlab("Days of Life")
+plot_metafeature(res_count$metafeature_aggregate, group) + xlab("Days of Life")
 #> Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   
 ```
 
@@ -220,7 +220,7 @@ Instead of plotting against the time points, you can visualize the
 samples in low-dimensional spaces.
 
 ``` r
-tab_feat_obs <- res_count$metafeature.aggregate
+tab_feat_obs <- res_count$metafeature_aggregate
 colnames(tab_feat_obs)[2] <- 'studyid'
 tab_feat_obs <- merge(tab_feat_obs, metauni)
 
@@ -259,10 +259,9 @@ p_aggfeat_scatter2
 
 #### Run TEMPTED
 
-**IMPORTANT NOTE**: Different form the count data, `pseudo_count = NULL`
-is used so that 1/2 of the smallest non-zero value is added to each
-sample. This pseudo count is added for transform=c(“log_comp”, “clr”,
-“logit”).
+**IMPORTANT NOTE**: Different form the count data, `pseudo = NULL` is
+used so that 1/2 of the smallest non-zero value is added to each sample.
+This pseudo count is added for transform=c(“log_comp”, “clr”, “logit”).
 
 ``` r
 proportion_table <- count_table/rowSums(count_table)
@@ -271,7 +270,7 @@ res_proportion <- tempted_all(proportion_table,
                               meta_table$studyid,
                               threshold=0.95,
                               transform="clr",
-                              pseudo_count=NULL,
+                              pseudo=NULL,
                               r=2,
                               smooth=1e-5)
 #> [1] "Calculate the 1th Component"
@@ -283,11 +282,11 @@ res_proportion <- tempted_all(proportion_table,
 #### Low-dimensional representation of subjects
 
 ``` r
-A.data <- metauni
-rownames(A.data) <- A.data$studyid
-A.data <- cbind(res_proportion$A.hat[rownames(A.data),], A.data)
+A_data <- metauni
+rownames(A_data) <- A_data$studyid
+A_data <- cbind(res_proportion$A_hat[rownames(A_data),], A_data)
 
-p_subj <- ggplot(data=A.data, aes(x=A.data[,1], y=A.data[,2], color=delivery)) + 
+p_subj <- ggplot(data=A_data, aes(x=A_data[,1], y=A_data[,2], color=delivery)) + 
   geom_point() + 
   labs(x='Component 1', y='Component 2', title='subject loading') 
 print(p_subj)
@@ -309,7 +308,7 @@ print(p_time)
 #### Plot the feature loadings
 
 ``` r
-pfeature <- ggplot(as.data.frame(res_proportion$B.hat), aes(x=`Component 1`, y=`Component 2`)) + 
+pfeature <- ggplot(as.data.frame(res_proportion$B_hat), aes(x=`Component 1`, y=`Component 2`)) + 
   geom_point() + 
   labs(x='Component 1', y='Component 2', title='feature loading')
 print(pfeature)
@@ -321,7 +320,7 @@ print(pfeature)
 
 ``` r
 group <- unique(meta_table[,c("studyid", "delivery")])
-plot_metafeature(res_proportion$metafeature.ratio, group) + xlab("Days of Life")
+plot_metafeature(res_proportion$metafeature_ratio, group) + xlab("Days of Life")
 #> Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   
 ```
 
@@ -331,7 +330,7 @@ plot_metafeature(res_proportion$metafeature.ratio, group) + xlab("Days of Life")
 
 ``` r
 group <- unique(meta_table[,c("studyid", "delivery")])
-plot_metafeature(res_proportion$metafeature.aggregate, group) + xlab("Days of Life")
+plot_metafeature(res_proportion$metafeature_aggregate, group) + xlab("Days of Life")
 #> Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   
 ```
 
@@ -344,7 +343,7 @@ Instead of plotting against the time points, you can visualize the
 samples in low-dimensional spaces.
 
 ``` r
-tab_feat_obs <- res_proportion$metafeature.aggregate
+tab_feat_obs <- res_proportion$metafeature_aggregate
 colnames(tab_feat_obs)[2] <- 'studyid'
 tab_feat_obs <- merge(tab_feat_obs, metauni)
 
@@ -406,11 +405,11 @@ res_processed <- tempted_all(processed_table,
 #### Low-dimensional representation of subjects
 
 ``` r
-A.data <- metauni
-rownames(A.data) <- A.data$studyid
-A.data <- cbind(res_processed$A.hat[rownames(A.data),], A.data)
+A_data <- metauni
+rownames(A_data) <- A_data$studyid
+A_data <- cbind(res_processed$A_hat[rownames(A_data),], A_data)
 
-p_subj <- ggplot(data=A.data, aes(x=A.data[,1], y=A.data[,2], color=delivery)) + 
+p_subj <- ggplot(data=A_data, aes(x=A_data[,1], y=A_data[,2], color=delivery)) + 
   geom_point() + 
   labs(x='Component 1', y='Component 2', title='subject loading') 
 print(p_subj)
@@ -432,7 +431,7 @@ print(p_time)
 #### Plot the feature loadings
 
 ``` r
-pfeature <- ggplot(as.data.frame(res_processed$B.hat), aes(x=`Component 1`, y=`Component 2`)) + 
+pfeature <- ggplot(as.data.frame(res_processed$B_hat), aes(x=`Component 1`, y=`Component 2`)) + 
   geom_point() + 
   labs(x='Component 1', y='Component 2', title='feature loading')
 print(pfeature)
@@ -444,7 +443,7 @@ print(pfeature)
 
 ``` r
 group <- unique(meta_table[,c("studyid", "delivery")])
-plot_metafeature(res_processed$metafeature.aggregate, group) + xlab("Days of Life")
+plot_metafeature(res_processed$metafeature_aggregate, group) + xlab("Days of Life")
 #> Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   
 ```
 
@@ -453,7 +452,7 @@ plot_metafeature(res_processed$metafeature.aggregate, group) + xlab("Days of Lif
 #### Low-dimensional representation of samples
 
 ``` r
-tab_feat_obs <- res_processed$metafeature.aggregate
+tab_feat_obs <- res_processed$metafeature_aggregate
 colnames(tab_feat_obs)[2] <- 'studyid'
 tab_feat_obs <- merge(tab_feat_obs, metauni)
 
@@ -504,13 +503,13 @@ samples from the same time point, `format_tempted()` will only keep the
 first sample in the data input.
 
 **IMPORTANT NOTE**: For read count table as `feature_table`, set
-`pseudo_count=0.5`. For compositional data as `feature_table`, default
-setting is appropriate. For non-microbiome data, set `transform="none"`
-and `threshold=1`.
+`pseudo=0.5`. For compositional data as `feature_table`, default setting
+is appropriate. For non-microbiome data, set `transform="none"` and
+`threshold=1`.
 
 ``` r
 # format the data frames into a list that can be used by TEMPTED
-datlist <- format_tempted(count_table, meta_table$day_of_life, meta_table$studyid, threshold=0.95, pseudo_count=0.5, transform="clr")
+datlist <- format_tempted(count_table, meta_table$day_of_life, meta_table$studyid, threshold=0.95, pseudo=0.5, transform="clr")
 length(datlist)
 #> [1] 42
 print(dim(datlist[[1]]))
@@ -553,7 +552,7 @@ The feature loadings can be used to rank features. The abundance ratio
 of top ranking features over bottom ranking features corresponding to
 each component can be a biologically meaningful marker. We provide an R
 function `ratio_feature()` to calculate such the abundance ratio. The
-abundance ratio is stored in the output variable `metafeature.ratio` in
+abundance ratio is stored in the output variable `metafeature_ratio` in
 the output. An TRUE/FALSE vector indicating whether the feature is in
 the top ranking or bottom ranking is stored in variable `toppct` and
 `bottompct`, respectively. Below are trajectories of the aggregated
@@ -580,7 +579,7 @@ contrast
 
 ratio_feat <- ratio_feature(res_tempted, datlist_raw,
                         contrast=contrast, pct=0.1)
-tab_feat_obs <- ratio_feat$metafeature.ratio
+tab_feat_obs <- ratio_feat$metafeature_ratio
 colnames(tab_feat_obs)[2] <- 'studyid'
 tab_feat_obs <- merge(tab_feat_obs, metauni)
 colnames(tab_feat_obs)
@@ -589,7 +588,7 @@ p_feat_obs <- ggplot(data=tab_feat_obs,
                       aes(x=timepoint, y=value, group=studyid, color=delivery)) +
   geom_line() + facet_wrap(.~PC, scales="free", nrow=1) + xlab("Days of Life")
 
-p_feat_obs_summary <- plot_metafeature(ratio_feat$metafeature.ratio, group, bws=30, nrow=1) + xlab("Days of Life")
+p_feat_obs_summary <- plot_metafeature(ratio_feat$metafeature_ratio, group, bws=30, nrow=1) + xlab("Days of Life")
 
 grid.arrange(p_feat_obs, p_feat_obs_summary, nrow=2)
 ```
@@ -603,8 +602,8 @@ aggregation can be done using the low-rank denoised data tensor, or the
 original observed data tensor. We provide an R function
 `aggregate_feature()` to perform the aggregation. The aggregated
 features using low-rank denoised tensor is stored in variable
-`metafeature.aggregate.est` and the aggregated features using observed
-data is stored in variable `metafeature.aggregate`. Below are
+`metafeature_aggregate_est` and the aggregated features using observed
+data is stored in variable `metafeature_aggregate`. Below are
 trajectories of the aggregated features using observed data. Only the
 features with absolute loading in the top pct percentile (by default set
 to 100%, i.e. all features, through option `pct=1`) are used for the
@@ -617,7 +616,7 @@ from different components.
 contrast <- cbind(c(1/2,1), c(1/2,-1))
 agg_feat <- aggregate_feature(res_tempted, svd_tempted, datlist, 
                               contrast=contrast, pct=1)
-tab_feat_obs <- agg_feat$metafeature.aggregate
+tab_feat_obs <- agg_feat$metafeature_aggregate
 colnames(tab_feat_obs)[2] <- 'studyid'
 tab_feat_obs <- merge(tab_feat_obs, metauni)
 colnames(tab_feat_obs)
@@ -626,7 +625,7 @@ p_feat_obs <- ggplot(data=tab_feat_obs,
                       aes(x=timepoint, y=value, group=studyid, color=delivery)) +
   geom_line() + facet_wrap(.~PC, scales="free", nrow=1) + xlab("Days of Life")
 
-p_feat_obs_summary <- plot_metafeature(agg_feat$metafeature.aggregate, group, bws=30, nrow=1) + xlab("Days of Life")
+p_feat_obs_summary <- plot_metafeature(agg_feat$metafeature_aggregate, group, bws=30, nrow=1) + xlab("Days of Life")
 
 grid.arrange(p_feat_obs, p_feat_obs_summary, nrow=2)
 ```

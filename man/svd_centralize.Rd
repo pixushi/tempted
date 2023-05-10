@@ -17,10 +17,12 @@ and the following rows representing the feature values.}
 }
 \value{
 A list of results.
-\item{datlist}{The new temporal tensor after mean structure is removed}
-\item{A.tilde}{The subject singular vector of the mean structure, a subject by r matrix.}
-\item{B.tilde}{The feature singular vector of the mean structure, a feature by r matrix.}
-\item{lambda.tilde}{The singular value of the mean structure, a length r vector.}
+\describe{
+\item{datlist}{The new temporal tensor after mean structure is removed.}
+\item{A_tilde}{The subject singular vector of the mean structure, a subject by r matrix.}
+\item{B_tilde}{The feature singular vector of the mean structure, a feature by r matrix.}
+\item{lambda_tilde}{The singular value of the mean structure, a length r vector.}
+}
 }
 \description{
 This function first average the feature value of all time points for each subject to form a subject by feature matrix.

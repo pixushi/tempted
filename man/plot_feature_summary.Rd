@@ -39,11 +39,11 @@ This is a handy function to plot the smoothed mean and error bands for multiple 
 \examples{
 # plot the summary of selected features
 
-feat_names <- c("OTU4447072", "OTU4467447")
+feat.names <- c("OTU4447072", "OTU4467447")
 
 proportion_table <- count_table/rowSums(count_table)
 
-plot_feature_summary(proportion_table[,feat_names],
+plot_feature_summary(proportion_table[,feat.names],
                      meta_table$day_of_life,
                      meta_table$delivery,
                      bws=30)

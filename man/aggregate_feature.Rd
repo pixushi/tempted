@@ -9,8 +9,7 @@ aggregate_feature(
   mean_svd = NULL,
   datlist,
   pct = 1,
-  contrast = NULL,
-  get_contrast = NULL
+  contrast = NULL
 )
 }
 \arguments{
@@ -29,21 +28,15 @@ where features are ranked in absolute value of feature loading of each component
 \item{contrast}{A matrix choosing how components are combined,
 each column is a contrast of length r and used to calculate the linear combination of
 the feature loadings of r components.}
-
-\item{get_contrast}{A vector denoting which components to use to construct a contrast and combine.
-A vector of \code{c(1,1,0)} means the first two of three components are used to find the contrast to combine.}
 }
 \value{
 A list of results.
-\item{metafeature.aggregate}{The meta feature obtained by aggregating the observed temporal tensor.
-It is a data.frame with four columns: "value" for the meta feature values,
-"subID" for the subject ID, "timepoint" for the time points,
-and "PC" indicating which component was used to construct the meta feature.}
-\item{metafeature.aggregate.est}{The meta feature obtained by aggregating the denoised temporal tensor.
-It has the same structure as \code{metafeature.aggregate}.}
-\item{contrast}{The contrast used to linearly combine the components.
-It is either from the input parameter \code{contrast} or calculated by setting \code{get_contrast}.}
+\describe{
+\item{metafeature_aggregate}{The meta feature obtained by aggregating the observed temporal tensor. It is a data.frame with four columns: "value" for the meta feature values, "subID" for the subject ID, "timepoint" for the time points, and "PC" indicating which component was used to construct the meta feature.}
+\item{metafeature_aggregate_est}{The meta feature obtained by aggregating the denoised temporal tensor. It has the same structure as \code{metafeature_aggregate}.}
+\item{contrast}{The contrast used to linearly combine the components from input.}
 \item{toppct}{A matrix of TRUE/FALSE indicating which features are aggregated in each component and contrast.}
+}
 }
 \description{
 This function aggregate the features into "meta features" by
@@ -55,14 +48,14 @@ by a linear combination of feature loadings from multiple components.
 datlist <- format_tempted(count_table,
                           meta_table$day_of_life,
                           meta_table$studyid,
-                          pseudo_count=0.5,
+                          pseudo=0.5,
                           transform="clr")
 
 mean_svd <- svd_centralize(datlist, r=1)
 
 res_tempted <- tempted(mean_svd$datlist, r=3, smooth=1e-5)
 
-datlist_raw <- format_tempted(count_table,
+datalist_raw <- format_tempted(count_table,
                               meta_table$day_of_life,
                               meta_table$studyid,
                               transform="none")
@@ -77,5 +70,5 @@ res_aggregate <- aggregate_feature(res_tempted,
 
 group <- unique(meta_table[, c("studyid", "delivery")])
 
-plot_metafeature(res_aggregate$metafeature.aggregate, group, bws=30)
+plot_metafeature(res_aggregate$metafeature_aggregate, group, bws=30)
 }

@@ -29,22 +29,15 @@ over the abundance of the features with negative loading.}
 \item{contrast}{A matrix choosing how components are combined,
 each column is a contrast of length r and used to calculate the linear combination of
 the feature loadings of r components.}
-
-\item{get_contrast}{A vector denoting which components to use to construct a contrast and combine.
-A vector of \code{c(1,1,0)} means the first two of three components are used to find the contrast to combine.}
 }
 \value{
-A list of results.
-\item{metafeature.ratio}{The log ratio abundance of the top over bottom ranking features.
-It is a data.frame with five columns: "value" for the log ratio values,
-"subID" for the subject ID, and "timepoint" for the time points,
-and "PC" indicating which component was used to construct the meta feature.}
-\item{contrast}{The contrast used to linearly combine the components.
-It is either from the input parameter \code{contrast} or calculated by setting \code{get_contrast}.}
-\item{toppct}{A matrix of TRUE/FALSE indicating which features are ranked top in each component (and contrast)
-and used as the numerator of the log ratio.}
-\item{bottompct}{A matrix of TRUE/FALSE indicating which features are ranked bottom in each component (and contrast)
-and used as the denominator of the log ratio.}
+A list of results:
+\describe{
+\item{metafeature_ratio}{The log ratio abundance of the top over bottom ranking features. It is a data.frame with five columns: "value" for the log ratio values, "subID" for the subject ID, and "timepoint" for the time points, and "PC" indicating which component was used to construct the meta feature.}
+\item{contrast}{The contrast used to linearly combine the components from input.}
+\item{toppct}{A matrix of TRUE/FALSE indicating which features are ranked top in each component (and contrast) and used as the numerator of the log ratio.}
+\item{bottompct}{A matrix of TRUE/FALSE indicating which features are ranked bottom in each component (and contrast) and used as the denominator of the log ratio.}
+}
 }
 \description{
 Top and bottom ranking features are picked based on feature loadings (and their contrasts).
@@ -56,22 +49,22 @@ and may not be meaningful for other type of temporal data.
 datlist <- format_tempted(count_table,
                           meta_table$day_of_life,
                           meta_table$studyid,
-                          pseudo_count=0.5,
+                          pseudo=0.5,
                           transform="clr")
 
 mean_svd <- svd_centralize(datlist, r=1)
 
 res_tempted <- tempted(mean_svd$datlist, r=3, smooth=1e-5)
 
-datlist_raw <- format_tempted(count_table, meta_table$day_of_life, meta_table$studyid,
+datalist_raw <- format_tempted(count_table, meta_table$day_of_life, meta_table$studyid,
 transform="none")
 
 contrast <- cbind(c(1,1,0), c(1,-1,0))
 
-res_ratio <- ratio_feature(res_tempted, datlist_raw, pct=0.1,
+res_ratio <- ratio_feature(res_tempted, datalist_raw, pct=0.1,
 absolute=FALSE, contrast=contrast)
 
 group <- unique(meta_table[, c("studyid", "delivery")])
 
-plot_metafeature(res_ratio$metafeature.ratio, group, bws=30)
+plot_metafeature(res_ratio$metafeature_ratio, group, bws=30)
 }

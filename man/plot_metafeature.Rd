@@ -2,14 +2,14 @@
 % Please edit documentation in R/TEMPTED.R
 \name{plot_metafeature}
 \alias{plot_metafeature}
-\title{Plot nonparametric smoothed mean and error bands of meta features versus time}
+\title{Plot nonparametric smoothed mesan and error bands of meta features versus time}
 \usage{
 plot_metafeature(metafeature, group, coverage = 0.95, bws = NULL, nrow = 1)
 }
 \arguments{
-\item{metafeature}{It can be \code{metafeature.ratio} from the output of \code{\link{ratio_feature}} and \code{tempted_all()},
-\code{metafeature.aggregate} from the output of \code{\link{ratio_feature}} and \code{tempted_all()},
-or \code{metafeature.aggregate.est} from the output of \code{\link{ratio_feature}}.}
+\item{metafeature}{It can be \code{metafeature_ratio} from the output of \code{\link{ratio_feature}} and \code{tempted_all()},
+\code{metafeature_aggregate} from the output of \code{\link{ratio_feature}} and \code{tempted_all()},
+or \code{metafeature_aggregate_est} from the output of \code{\link{ratio_feature}}.}
 
 \item{group}{A subject by 2 data.frame with the first column for subject ID and second column for group membership.}
 

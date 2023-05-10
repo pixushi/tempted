@@ -5,31 +5,31 @@
 \title{Format data table into the input of tempted}
 \usage{
 format_tempted(
-  feature_table,
-  time_point,
+  featuretable,
+  timepoint,
   subjectID,
   threshold = 0.95,
-  pseudo_count = NULL,
+  pseudo = NULL,
   transform = "clr"
 )
 }
 \arguments{
-\item{feature_table}{A sample by feature matrix.}
+\item{featuretable}{A sample by feature matrix.}
 
-\item{time_point}{The time stamp of each sample, matched with the rows of \code{feature_table}.}
+\item{timepoint}{The time stamp of each sample, matched with the rows of \code{featuretable}.}
 
-\item{subjectID}{The subject ID of each sample, matched with the rows of \code{feature_table}.}
+\item{subjectID}{The subject ID of each sample, matched with the rows of \code{featuretable}.}
 
 \item{threshold}{A threshold for feature filtering for microbiome data.
 Features with zero value percentage > threshold will be excluded. Default is 0.95.}
 
-\item{pseudo_count}{A small number to add to all the counts before
+\item{pseudo}{A small number to add to all the counts before
 normalizing into proportions and log transformation.
 Default is 1/2 of the smallest non-zero value that is specific for each sample.
-This pseudo count is added for \code{transform=c("log_comp", "clr", "logit")}.}
+This pseudo count is added for \code{transform=c("logcomp", "clr", "logit")}.}
 
 \item{transform}{The transformation applied to the data.
-\code{"log_comp"} for log of compositions.
+\code{"logcomp"} for log of compositions.
 \code{"comp"} for compositions.
 \code{"ast"} for arcsine squared transformation.
 \code{"clr"} for central log ratio transformation.
@@ -39,11 +39,7 @@ Default \code{transform="clr"} is recommended for microbiome data.
 For data that are already transformed, use \code{transform="none"}.}
 }
 \value{
-A length n list of matrices as the input of \code{\link{tempted}} and \code{\link{svd_centralize}}.
-Each matrix represents a subject,
-with columns representing samples from this subject,
-the first row representing the sampling time points,
-and the following rows representing the feature values.
+A length n list of matrices as the input of \code{\link{tempted}} and \code{\link{svd_centralize}}.  Each matrix represents a subject, with columns representing samples from this subject, the first row representing the sampling time points, and the following rows representing the feature values.
 }
 \description{
 This function applies a variety of transformations to the read counts and
