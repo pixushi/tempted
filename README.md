@@ -89,12 +89,12 @@ Here we explain the key parameters:
   temporal loading functions. Default is set to be 1e-8. Value can be
   adjusted depending on the dataset by checking the smoothness of the
   estimated temporal loading function in plot.
-- `transform`: The transformation applied to the data. “log_comp” for
-  log of compositions. “comp” for compositions. “ast” for arcsine
-  squared transformation. “clr” for central log ratio transformation.
-  “logit” for logit transformation. “none” for no transformation.
-  Default transform=“clr” is recommended for microbiome data. For data
-  that are already transformed, use transform=“none”.
+- `transform`: The transformation applied to the data. “logcomp” for log
+  of compositions. “comp” for compositions. “ast” for arcsine squared
+  transformation. “clr” for central log ratio transformation. “logit”
+  for logit transformation. “none” for no transformation. Default
+  transform=“clr” is recommended for microbiome data. For data that are
+  already transformed, use transform=“none”.
 - `r`: Number of components to decompose into, i.e. rank of the CP type
   decomposition. Default is set to 3.
 - `pct_ratio`: The percent of features to sum up for taking log ratios.
@@ -115,7 +115,7 @@ Here we explain the key parameters:
 - `pseudo`: A small number to add to all the counts before normalizing
   into proportions and log transformation. Default is 1/2 of the
   smallest non-zero value that is specific for each sample. This pseudo
-  count is added for `transform=c("log_comp", "clr", "logit")`.
+  count is added for `transform=c("logcomp", "clr", "logit")`.
 
 **IMPORTANT NOTE:** In matrix singular value decomposition, the sign of
 subject scores and feature loadings can be flipped together. Similarly,
@@ -261,7 +261,7 @@ p_aggfeat_scatter2
 
 **IMPORTANT NOTE**: Different form the count data, `pseudo = NULL` is
 used so that 1/2 of the smallest non-zero value is added to each sample.
-This pseudo count is added for transform=c(“log_comp”, “clr”, “logit”).
+This pseudo count is added for transform=c(“logcomp”, “clr”, “logit”).
 
 ``` r
 proportion_table <- count_table/rowSums(count_table)
