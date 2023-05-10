@@ -74,7 +74,7 @@ Default is set to 101. It does not affect the subject or feature loadings. Input
 
 \item{epsilon}{Convergence criteria for difference between iterations. Default is 1e-4. Input for \code{\link{tempted}}.}
 
-\item{r_svd}{The number of ranks in the mean structure. Default is 1. Input for \code{svd_centraliz}}
+\item{r_svd}{The number of ranks in the mean structure. Default is 1. Input for \code{\linke{svd_centraliz}}.}
 
 \item{do_ratio}{Whether to calculate the log ratio of features.}
 
@@ -102,13 +102,13 @@ the feature loadings of r components.
 Input for \code{\link{ratio_feature}} and Input for \code{\link{aggregate_feature}}.}
 }
 \value{
-A list including all the input and output of functions \code{\link{format_tempted}}, \code{svd_centralize()}, \code{\link{tempted}},
+A list including all the input and output of functions \code{\link{format_tempted}}, \code{\link{svd_centralize}}, \code{\link{tempted}},
 \code{\link{ratio_feature}}, and \code{\link{aggregate_feature}}.
 \describe{
-\item{input}{All the input options of function \code{tempted_all()}.}
-\item{datalist_raw}{Output of \code{format_tempted()} with option \code{transform="none"}.}
-\item{datlist}{Output of \code{format_tempted()}.}
-\item{mean_svd}{Output of \code{svd_centralize()}.}
+\item{input}{All the input options of function \code{\link{tempted_all}}.}
+\item{datalist_raw}{Output of \code{\link{format_tempted}} with option \code{transform="none"}.}
+\item{datlist}{Output of \code{\link{format_tempted}}.}
+\item{mean_svd}{Output of \code{\link{svd_centralize}}.}
 \item{A_hat}{Subject loading, a subject by r matrix.}
 \item{B_hat}{Feature loading, a feature by r matrix.}
 \item{Phi_hat}{Temporal loading function, a resolution by r matrix.}

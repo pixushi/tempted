@@ -7,8 +7,8 @@
 plot_metafeature(metafeature, group, coverage = 0.95, bws = NULL, nrow = 1)
 }
 \arguments{
-\item{metafeature}{It can be \code{metafeature_ratio} from the output of \code{\link{ratio_feature}} and \code{tempted_all()},
-\code{metafeature_aggregate} from the output of \code{\link{ratio_feature}} and \code{tempted_all()},
+\item{metafeature}{It can be \code{metafeature_ratio} from the output of \code{\link{ratio_feature}} and \code{\link{tempted_all}},
+\code{metafeature_aggregate} from the output of \code{\link{ratio_feature}} and \code{\link{tempted_all}},
 or \code{metafeature_aggregate_est} from the output of \code{\link{ratio_feature}}.}
 
 \item{group}{A subject by 2 data.frame with the first column for subject ID and second column for group membership.}

@@ -751,7 +751,7 @@ ratio_feature <- function(res_tempted, datlist,
 #' Default is set to 101. It does not affect the subject or feature loadings. Input for \code{\link{tempted}}.
 #' @param maxiter Maximum number of iteration. Default is 20. Input for \code{\link{tempted}}.
 #' @param epsilon Convergence criteria for difference between iterations. Default is 1e-4. Input for \code{\link{tempted}}.
-#' @param r_svd The number of ranks in the mean structure. Default is 1. Input for \code{svd_centraliz}
+#' @param r_svd The number of ranks in the mean structure. Default is 1. Input for \code{\linke{svd_centralize}}.
 #' @param pct_ratio The percent of features to sum up. Default is 0.05, i.e. 5%.
 #' Input for \code{\link{ratio_feature}}.
 #' @param absolute \code{absolute = TRUE} means features are ranked by the absolute value of feature loadings,
@@ -772,13 +772,13 @@ ratio_feature <- function(res_tempted, datlist,
 #' the feature loadings of r components.
 #' Input for \code{\link{ratio_feature}} and Input for \code{\link{aggregate_feature}}.
 #' @param do_ratio Whether to calculate the log ratio of features.
-#' @return A list including all the input and output of functions \code{\link{format_tempted}}, \code{svd_centralize()}, \code{\link{tempted}},
+#' @return A list including all the input and output of functions \code{\link{format_tempted}}, \code{\link{svd_centralize}}, \code{\link{tempted}},
 #' \code{\link{ratio_feature}}, and \code{\link{aggregate_feature}}.
 #' \describe{
-#'   \item{input}{All the input options of function \code{tempted_all()}.}
-#'   \item{datalist_raw}{Output of \code{format_tempted()} with option \code{transform="none"}.}
-#'   \item{datlist}{Output of \code{format_tempted()}.}
-#'   \item{mean_svd}{Output of \code{svd_centralize()}.}
+#'   \item{input}{All the input options of function \code{\link{tempted_all}}.}
+#'   \item{datalist_raw}{Output of \code{\link{format_tempted}} with option \code{transform="none"}.}
+#'   \item{datlist}{Output of \code{\link{format_tempted}}.}
+#'   \item{mean_svd}{Output of \code{\link{svd_centralize}}.}
 #'   \item{A_hat}{Subject loading, a subject by r matrix.}
 #'   \item{B_hat}{Feature loading, a feature by r matrix.}
 #'   \item{Phi_hat}{Temporal loading function, a resolution by r matrix.}
@@ -957,8 +957,8 @@ plot_feature_summary <- function(feature_mat, time_vec, group_vec,
 #' @title Plot nonparametric smoothed mesan and error bands of meta features versus time
 #' @description This function plot the smoothed mean and error band of meta features
 #' grouped by a factor variable provided by the user.
-#' @param metafeature It can be \code{metafeature_ratio} from the output of \code{\link{ratio_feature}} and \code{tempted_all()},
-#' \code{metafeature_aggregate} from the output of \code{\link{ratio_feature}} and \code{tempted_all()},
+#' @param metafeature It can be \code{metafeature_ratio} from the output of \code{\link{ratio_feature}} and \code{\link{tempted_all}},
+#' \code{metafeature_aggregate} from the output of \code{\link{ratio_feature}} and \code{\link{tempted_all}},
 #' or \code{metafeature_aggregate_est} from the output of \code{\link{ratio_feature}}.
 #' @param group A subject by 2 data.frame with the first column for subject ID and second column for group membership.
 #' @param coverage The coverage rate for the error band. Default is 0.95.
@@ -1038,8 +1038,8 @@ plot_time_loading <- function(res, r=NULL, ...){
 #' Central-log-ratio (clr) transformed OTU table from the ECAM data
 #' @format A data.frame with rows representing samples and matching with data.frame \code{meta_table}
 #' and columns representing microbial features (i.e. OTUs).
-#' Entries do not need to be transformed, and will be directly used by \code{tempted}.
-#' This data.frame is used to illustrate how \code{tempted} can be used for
+#' Entries do not need to be transformed, and will be directly used by \code{\link{tempted}}.
+#' This data.frame is used to illustrate how \code{\link{tempted}} can be used for
 #' general form of multivariate longitudinal data already preprocessed by user.
 #' @source Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
 #' @md

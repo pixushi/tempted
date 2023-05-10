@@ -7,8 +7,8 @@
 \format{
 A data.frame with rows representing samples and matching with data.frame \code{meta_table}
 and columns representing microbial features (i.e. OTUs).
-Entries do not need to be transformed, and will be directly used by \code{tempted}.
-This data.frame is used to illustrate how \code{tempted} can be used for
+Entries do not need to be transformed, and will be directly used by \code{\link{tempted}}.
+This data.frame is used to illustrate how \code{\link{tempted}} can be used for
 general form of multivariate longitudinal data already preprocessed by user.
 }
 \source{
