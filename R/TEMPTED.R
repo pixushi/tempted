@@ -904,9 +904,9 @@ tempted_all <- function(featuretable, timepoint, subjectID,
 #' @export
 #' @md
 plot_feature_summary <- function(feature_mat, time_vec, group_vec,
-                                   coverage=0.95, bws=NULL, nrow=1){
+                                 coverage=0.95, bws=NULL, nrow=1){
   nfeature <- ncol(feature_mat)
-  if(!is(group_vec, "factor")) group_vec <- as.factor(group_vec)
+  if(class(group_vec)!='factor') group_vec <- as.factor(group_vec)
   group_level <- levels(group_vec)
   time_all <- NULL
   mean_all <- NULL
@@ -940,15 +940,15 @@ plot_feature_summary <- function(feature_mat, time_vec, group_vec,
     }
   }
   group_all <- factor(group_all, levels=group_level)
-  tab_summary <- data.frame(timepoint=time_all, mean_value=mean_all, merr_value=merr_all,
-                            group=group_all, feature=feature_all)
+  tab_summary <- data.frame(time_all=time_all, mean_all=mean_all, merr_all=merr_all,
+                            group_all=group_all, feature_all=feature_all)
 
   p_summary <- ggplot(data=tab_summary,
-                      aes(x=tab_summary$timepoint, y=tab_summary$mean_value, group=tab_summary$group, color=tab_summary$group)) +
+                      aes(x=tab_summary$time_all, y=tab_summary$mean_all, group=tab_summary$group_all, color=tab_summary$group_all)) +
     geom_line() +
-    geom_ribbon(aes(ymin=tab_summary$mean_value-CI_length*tab_summary$merr_value, ymax=tab_summary$merr_value+CI_length*tab_summary$merr_value,
-                    color=tab_summary$group, fill=tab_summary$group), linetype=2, alpha=0.3) +
-    ylab(paste0('mean +/- ', round(CI_length,2), '*se')) + facet_wrap(.~feature, scales="free", nrow=nrow)
+    geom_ribbon(aes(ymin=tab_summary$mean_all-CI_length*tab_summary$merr_all, ymax=tab_summary$mean_all+CI_length*tab_summary$merr_all,
+                    color=tab_summary$group_all, fill=tab_summary$group_all), linetype=2, alpha=0.3) +
+    ylab(paste0('mean +/- ', round(CI_length,2), '*se')) + facet_wrap(.~tab_summary$feature_all, scales="free", nrow=nrow)
   return(p_summary)
 }
 
