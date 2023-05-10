@@ -944,11 +944,11 @@ plot_feature_summary <- function(feature_mat, time_vec, group_vec,
                             group_all=group_all, feature_all=feature_all)
 
   p_summary <- ggplot(data=tab_summary,
-                      aes(x=tab_summary$time_all, y=tab_summary$mean_all, group=tab_summary$group_all, color=tab_summary$group_all)) +
+                      aes(x=.data$time_all, y=.data$mean_all, group=.data$group_all, color=.data$group_all)) +
     geom_line() +
-    geom_ribbon(aes(ymin=tab_summary$mean_all-CI_length*tab_summary$merr_all, ymax=tab_summary$mean_all+CI_length*tab_summary$merr_all,
-                    color=tab_summary$group_all, fill=tab_summary$group_all), linetype=2, alpha=0.3) +
-    ylab(paste0('mean +/- ', round(CI_length,2), '*se')) + facet_wrap(.~tab_summary$feature_all, scales="free", nrow=nrow)
+    geom_ribbon(aes(ymin=.data$mean_all-CI_length*.data$merr_all, ymax=.data$mean_all+CI_length*.data$merr_all,
+                    color=.data$group_all, fill=.data$group_all), linetype=2, alpha=0.3) +
+    ylab(paste0('mean +/- ', round(CI_length,2), '*se')) + facet_wrap(.~.data$feature_all, scales="free", nrow=nrow)
   return(p_summary)
 }
 
@@ -1008,7 +1008,7 @@ plot_time_loading <- function(res, r=NULL, ...){
   ntime <- nrow(Phi_data)
   Phi_data <- data.frame(timepoint=res$time_Phi, value=as.vector(Phi_data),
                          component=as.factor(as.vector(t(matrix(rep(1:r,ntime),r,)))))
-  ptime <- ggplot(data=Phi_data, aes(x=Phi_data$timepoint, y=Phi_data$value, color=Phi_data$component)) + geom_line(aes(...))
+  ptime <- ggplot(data=Phi_data, aes(x=.data$timepoint, y=.data$value, color=.data$component)) + geom_line(aes(...))
   return(ptime)
 }
 
