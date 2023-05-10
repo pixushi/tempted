@@ -906,7 +906,7 @@ tempted_all <- function(featuretable, timepoint, subjectID,
 plot_feature_summary <- function(feature_mat, time_vec, group_vec,
                                  coverage=0.95, bws=NULL, nrow=1){
   nfeature <- ncol(feature_mat)
-  if(class(group_vec)!='factor') group_vec <- as.factor(group_vec)
+  if(!is(group_vec, 'factor')) group_vec <- as.factor(group_vec)
   group_level <- levels(group_vec)
   time_all <- NULL
   mean_all <- NULL
