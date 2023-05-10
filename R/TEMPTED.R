@@ -942,7 +942,7 @@ plot_feature_summary <- function(feature_mat, time_vec, group_vec,
   group_all <- factor(group_all, levels=group_level)
   tab_summary <- data.frame(time_all=time_all, mean_all=mean_all, merr_all=merr_all,
                             group_all=group_all, feature_all=feature_all)
-
+  .data <- NULL
   p_summary <- ggplot(data=tab_summary,
                       aes(x=.data$time_all, y=.data$mean_all, group=.data$group_all, color=.data$group_all)) +
     geom_line() +
@@ -1008,6 +1008,7 @@ plot_time_loading <- function(res, r=NULL, ...){
   ntime <- nrow(Phi_data)
   Phi_data <- data.frame(timepoint=res$time_Phi, value=as.vector(Phi_data),
                          component=as.factor(as.vector(t(matrix(rep(1:r,ntime),r,)))))
+  .data <- NULL
   ptime <- ggplot(data=Phi_data, aes(x=.data$timepoint, y=.data$value, color=.data$component)) + geom_line(aes(...))
   return(ptime)
 }
