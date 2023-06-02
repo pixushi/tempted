@@ -708,24 +708,25 @@ ratio_feature <- function(res_tempted, datlist,
 }
 
 #' @title Run all major functions of tempted
-#' @description This function wraps \code{\link{format_tempted}}, \code{\link{svd_centralize}}, \code{\link{tempted}},
-#' \code{\link{ratio_feature}}, and \code{\link{aggregate_feature}}.
+#' @description This function wraps functions \code{\link{format_tempted}}, \code{\link{svd_centralize}}, \code{\link{tempted}},
+#' \code{\link{ratio_feature}}, \
+#' and \code{\link{aggregate_feature}}.
 #' @param r Number of components to decompose into, i.e. rank of the CP type decomposition.
 #' Default is set to 3.
 #' @param smooth Smoothing parameter for RKHS norm.
 #' Larger means smoother temporal loading functions. Default is set to be 1e-8.
 #' Value can be adjusted depending on the dataset by checking the smoothness of the estimated temporal loading function in plot.
-#' @param featuretable A sample by feature matrix. Input for \code{\link{format_tempted}}.
-#' @param timepoint The time stamp of each sample, matched with the rows of \code{featuretable}. Input for \code{\link{format_tempted}}.
-#' @param subjectID The subject ID of each sample, matched with the rows of \code{featuretable}. Input for \code{\link{format_tempted}}.
+#' @param featuretable A sample by feature matrix. It is an input for \code{\link{format_tempted}}.
+#' @param timepoint The time stamp of each sample, matched with the rows of \code{featuretable}. It is an input for \code{\link{format_tempted}}.
+#' @param subjectID The subject ID of each sample, matched with the rows of \code{featuretable}. It is an input for \code{\link{format_tempted}}.
 #' @param threshold A threshold for feature filtering for microbiome data.
 #' Features with zero value percentage >= threshold will be excluded. Default is 0.95.
-#' Input for \code{\link{format_tempted}}.
+#' It is an input for \code{\link{format_tempted}}.
 #' @param pseudo A small number to add to all the counts before
 #' normalizing into proportions and log transformation.
 #' Default is 1/2 of the smallest non-zero value that is specific for each sample.
 #' This pseudo count is added for \code{transform=c("logcomp", "clr", "logit")}.
-#' Input for \code{\link{format_tempted}}.
+#' It is an input for \code{\link{format_tempted}}.
 #' @param transform The transformation applied to the data.
 #' \code{"logcomp"} for log of compositions.
 #' \code{"comp"} for compositions.
@@ -735,42 +736,42 @@ ratio_feature <- function(res_tempted, datlist,
 #' \code{"none"} for no transformation.
 #' Default \code{transform="clr"} is recommended for microbiome data.
 #' For data that are already transformed, use \code{transform="none"}.
-#' Input for \code{\link{format_tempted}}.
+#' It is an input for \code{\link{format_tempted}}.
 #' @param r Number of components to decompose into, i.e. rank of the CP type decomposition.
 #' Default is set to 3.
-#' Input for \code{\link{tempted}}.
+#' It is an input for \code{\link{tempted}}.
 #' @param smooth Smoothing parameter for RKHS norm.
 #' Larger means smoother temporal loading functions. Default is set to be 1e-8.
 #' Value can be adjusted depending on the dataset by checking the smoothness of the estimated temporal loading function in plot.
-#' Input for \code{\link{tempted}}.
+#' It is an input for \code{\link{tempted}}.
 #' @param interval The range of time points to ran the decomposition for.
 #' Default is set to be the range of all observed time points.
 #' User can set it to be a shorter interval than the observed range.
-#' Input for \code{\link{tempted}}.
+#' It is an input for \code{\link{tempted}}.
 #' @param resolution Number of time points to evaluate the value of the temporal loading function.
-#' Default is set to 101. It does not affect the subject or feature loadings. Input for \code{\link{tempted}}.
-#' @param maxiter Maximum number of iteration. Default is 20. Input for \code{\link{tempted}}.
-#' @param epsilon Convergence criteria for difference between iterations. Default is 1e-4. Input for \code{\link{tempted}}.
-#' @param r_svd The number of ranks in the mean structure. Default is 1. Input for \code{\linke{svd_centralize}}.
+#' Default is set to 101. It does not affect the subject or feature loadings. It is an input for \code{\link{tempted}}.
+#' @param maxiter Maximum number of iteration. Default is 20. It is an input for \code{\link{tempted}}.
+#' @param epsilon Convergence criteria for difference between iterations. Default is 1e-4. It is an input for \code{\link{tempted}}.
+#' @param r_svd The number of ranks in the mean structure. Default is 1. It is an input for \code{\link{svd_centralize}}.
 #' @param pct_ratio The percent of features to sum up. Default is 0.05, i.e. 5%.
-#' Input for \code{\link{ratio_feature}}.
+#' It is an input for \code{\link{ratio_feature}}.
 #' @param absolute \code{absolute = TRUE} means features are ranked by the absolute value of feature loadings,
 #' and the top \code{pct_ratio} percent of features are picked.
 #' \code{absolute = FALSE} means features are ranked by the original value of feature loadings,
 #' and the top and bottom \code{pct_ratio} percent of features are picked.
 #' Then ratio is taken as the abundance of the features with positive loading
 #' over the abundance of the features with negative loading.
-#' Input for \code{\link{ratio_feature}}.
+#' It is an input for \code{\link{ratio_feature}}.
 #' @param pct_aggregate The percent of features to aggregate,
 #' features ranked by absolute value of the feature loading of each component.
 #' Default is 1, which means 100% of features are aggregated.
 #' Setting \code{pct_aggregate=0.01} means top 1% of features is aggregated,
 #' where features are ranked in absolute value of feature loading of each component.
-#' Input for \code{\link{aggregate_feature}}.
+#' It is an input for \code{\link{aggregate_feature}}.
 #' @param contrast A matrix choosing how components are combined,
 #' each column is a contrast of length r and used to calculate the linear combination of
 #' the feature loadings of r components.
-#' Input for \code{\link{ratio_feature}} and Input for \code{\link{aggregate_feature}}.
+#' It is an input for \code{\link{ratio_feature}} and It is an input for \code{\link{aggregate_feature}}.
 #' @param do_ratio Whether to calculate the log ratio of features.
 #' @return A list including all the input and output of functions \code{\link{format_tempted}}, \code{\link{svd_centralize}}, \code{\link{tempted}},
 #' \code{\link{ratio_feature}}, and \code{\link{aggregate_feature}}.
@@ -957,8 +958,10 @@ plot_feature_summary <- function(feature_mat, time_vec, group_vec,
 #' @title Plot nonparametric smoothed mesan and error bands of meta features versus time
 #' @description This function plot the smoothed mean and error band of meta features
 #' grouped by a factor variable provided by the user.
-#' @param metafeature It can be \code{metafeature_ratio} from the output of \code{\link{ratio_feature}} and \code{\link{tempted_all}},
-#' \code{metafeature_aggregate} from the output of \code{\link{ratio_feature}} and \code{\link{tempted_all}},
+#' @param metafeature \code{metafeature_ratio} from the output of \code{\link{ratio_feature}} and
+#' \code{\link{tempted_all}},
+#' \code{metafeature_aggregate} from the output of
+#' \code{\link{ratio_feature}} and \code{\link{tempted_all}},
 #' or \code{metafeature_aggregate_est} from the output of \code{\link{ratio_feature}}.
 #' @param group A subject by 2 data.frame with the first column for subject ID and second column for group membership.
 #' @param coverage The coverage rate for the error band. Default is 0.95.

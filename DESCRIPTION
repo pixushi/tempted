@@ -1,12 +1,13 @@
 Package: tempted
 Type: Package
-Title: Temporal Tensor Decomposition, a Dimensionality Reduction Tool for Longitudinal Multivaraite Data
+Title: Temporal Tensor Decomposition, a Dimensionality Reduction Tool for Longitudinal Multivariate Data
 Version: 0.1.0
+Date: 2023-06-01
 Depends: R (>= 4.2.0), np (>= 0.60-17), ggplot2 (>= 3.4.0), methods (>= 4.2.1)
 Author: Pixu Shi
 Maintainer: Pixu Shi <pixu.shi@duke.edu>
 Description: 
-    A dimension reduction method for multivariate longitudinal data. It format the data into a temporal tensor, with three modes representing subject, feature, and continuous time, respectively. The tensor is then decomposed into a summation of low-dimensional components, each consisting of a subject loading vector, a feature loading vector, and a temporal loading function. These loadings provide low-dimensional representation of subjects or samples, and can be used to identify features associated with clusters of subjects or samples. TEMPTED provides the flexibility of allowing subjects to have different temporal sampling, so time points do not need to be binned and missing time points do not need to be imputed. 
+    A dimension reduction method for multivariate longitudinal data with varying temporal sampling. It formats the data into a temporal tensor and decomposes it into a summation of low-dimensional components, each consisting of a subject loading vector, a feature loading vector, and a continuous temporal loading function. These loadings provide a low-dimensional representation of subjects or samples and can be used to identify features associated with clusters of subjects or samples. TEMPTED provides the flexibility of allowing subjects to have different temporal sampling, so time points do not need to be binned, and missing time points do not need to be imputed.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
