@@ -46,25 +46,35 @@ This function and its result is designed for longitudinal microbiome data,
 and may not be meaningful for other type of temporal data.
 }
 \examples{
-datlist <- format_tempted(count_table,
-                          meta_table$day_of_life,
-                          meta_table$studyid,
+# Take a subset of the samples so the example runs faster
+
+# Here we are taking samples from the odd months
+sub_sample <- rownames(meta_table)[(meta_table$day_of_life\%/\%12)\%\%2==1]
+count_table_sub <- count_table[sub_sample,]
+processed_table_sub <- processed_table[sub_sample,]
+meta_table_sub <- meta_table[sub_sample,]
+
+datlist <- format_tempted(count_table_sub,
+                          meta_table_sub$day_of_life,
+                          meta_table_sub$studyid,
                           pseudo=0.5,
                           transform="clr")
 
 mean_svd <- svd_centralize(datlist, r=1)
 
-res_tempted <- tempted(mean_svd$datlist, r=3, smooth=1e-5)
+res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
 
-datalist_raw <- format_tempted(count_table, meta_table$day_of_life, meta_table$studyid,
+datalist_raw <- format_tempted(count_table_sub, meta_table_sub$day_of_life, meta_table_sub$studyid,
 transform="none")
 
-contrast <- cbind(c(1,1,0), c(1,-1,0))
+contrast <- cbind(c(1,1), c(1,-1))
 
 res_ratio <- ratio_feature(res_tempted, datalist_raw, pct=0.1,
 absolute=FALSE, contrast=contrast)
 
 group <- unique(meta_table[, c("studyid", "delivery")])
 
-plot_metafeature(res_ratio$metafeature_ratio, group, bws=30)
+# plot the log ratios
+
+# plot_metafeature(res_ratio$metafeature_ratio, group, bws=30)
 }

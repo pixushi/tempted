@@ -61,6 +61,7 @@ The goal of tempted is to perform dimensionality reduction for multivariate long
 2.  Run TEMPTED for Microbiome Compositional Data (Straightforward Way)
 3.  Run TEMPTED for General Form of Multivariate Longitudinal Data (Straightforward Way)
 4.  Run TEMPTED in Customized Way
+5.  Transferring TEMPTED result from training to testing data
 
 ### Run TEMPTED for Microbiome Count Data (Straightforward Way)
 
@@ -472,3 +473,76 @@ p_topfeat_summary <- plot_feature_summary(proportion_table[,feat_names],
   labs(x="Day of Life", y="Relative Abundance")
 grid.arrange(p_topfeat, p_topfeat_summary, nrow=2)
 ```
+
+
+### Transferring TEMPTED result from training to testing data
+
+#### Split the example data into training and testing
+
+Here we take thes subject with `studyid="2"` as the testing subject, and the remaining subjects as training subjects.
+
+```{r split_train_test}
+id_test <- meta_table$studyid=="2"
+
+count_train <- count_table[!id_test,]
+meta_train <- meta_table[!id_test,]
+
+count_test <- count_table[id_test,]
+meta_test <- meta_table[id_test,]
+```
+
+
+#### Run tempted on training subjects
+
+```{r tempted_train}
+datlist_train <- format_tempted(count_train,
+                                meta_train$day_of_life,
+                                meta_train$studyid,
+                                threshold=0.95,
+                                pseudo=0.5,
+                                transform="clr")
+
+mean_svd_train <- svd_centralize(datlist_train, r=1)
+
+res_tempted_train <- tempted(mean_svd_train$datlist,
+r=2, smooth=1e-5)
+```
+
+#### Obtain subject loading for testing subject
+
+**IMPORTANT NOTE**: the testing samples should contain the features in the training data.
+
+```{r tempted_test}
+# get the overlapping features between testing and training
+count_test <- count_test[,rownames(datlist_train[[1]])[-1]]
+
+# format testing data
+datlist_test <- format_tempted(count_test,
+                               meta_test$day_of_life,
+                               meta_test$studyid,
+                               threshold=1,
+                               pseudo=0.5,
+                               transform="clr")
+
+# estimate the subject loading of the testing subject
+sub_test <- est_test_subject(datlist_test, res_tempted_train, mean_svd_train)
+sub_test
+```
+
+Here we use logistic regression to illustrate how the subject loadings of the testing data can be used.
+
+
+```{r}
+# train logistic regression classifier on training subjects
+metauni <- unique(meta_table[,c("studyid", "delivery")])
+rownames(metauni) <- metauni$studyid
+Atrain <- as.data.frame(res_tempted_train$A_hat)
+Atrain$delivery <- metauni[rownames(Atrain),"delivery"]=="Cesarean"
+glm_train <- glm(delivery ~ `Component 1`+`Component 2`,
+                 data=Atrain, family=binomial(link="logit"))
+summary(glm_train)
+
+# predict the label of testing subject "2", whose true label is "Cesarean"
+predict(glm_train, newdata=as.data.frame(sub_test), type="response")
+```
+

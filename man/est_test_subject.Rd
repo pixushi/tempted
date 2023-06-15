@@ -23,15 +23,23 @@ based on feature and temporal loading from training data,
 so that both the testing data and training data have the same dimensionality reduction.
 }
 \examples{
+# Take a subset of the samples so the example runs faster
+
+# Here we are taking samples from the odd months
+sub_sample <- rownames(meta_table)[(meta_table$day_of_life\%/\%12)\%\%2==1]
+count_table_sub <- count_table[sub_sample,]
+processed_table_sub <- processed_table[sub_sample,]
+meta_table_sub <- meta_table[sub_sample,]
+
 # split the example data into training and testing
 
-id_test <- meta_table$studyid=="1"
+id_test <- meta_table_sub$studyid=="2"
 
-count_train <- count_table[!id_test,]
-meta_train <- meta_table[!id_test,]
+count_train <- count_table_sub[!id_test,]
+meta_train <- meta_table_sub[!id_test,]
 
-count_test <- count_table[id_test,]
-meta_test <- meta_table[id_test,]
+count_test <- count_table_sub[id_test,]
+meta_test <- meta_table_sub[id_test,]
 
 # run tempted on training data
 
@@ -45,7 +53,7 @@ datlist_train <- format_tempted(count_train,
 mean_svd_train <- svd_centralize(datlist_train, r=1)
 
 res_tempted_train <- tempted(mean_svd_train$datlist,
-r=3, smooth=1e-5)
+r=2, smooth=1e-5)
 
 # get the overlapping features
 
@@ -61,4 +69,19 @@ datlist_test <- format_tempted(count_test,
 # estimate the subject loading of the testing subject
 
 sub_test <- est_test_subject(datlist_test, res_tempted_train, mean_svd_train)
+
+# train logistic regression classifier on training subjects
+
+metauni <- unique(meta_table_sub[,c("studyid", "delivery")])
+rownames(metauni) <- metauni$studyid
+Atrain <- as.data.frame(res_tempted_train$A_hat)
+Atrain$delivery <- metauni[rownames(Atrain),"delivery"]=="Cesarean"
+glm_train <- glm(delivery ~ `Component 1`+`Component 2`,
+                 data=Atrain, family=binomial(link="logit"))
+summary(glm_train)
+
+# predict the label of testing subject, whose true label is "Cesarean"
+
+predict(glm_train, newdata=as.data.frame(sub_test), type="response")
+
 }

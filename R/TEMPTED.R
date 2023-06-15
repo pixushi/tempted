@@ -32,29 +32,37 @@ library(np)
 #'   \item{accum_r_square}{Variance explained by the first few components accumulated. This is the R-squared of the linear regression of the vectorized temporal tensor against the vectorized low-rank reconstruction using the first few components.}
 #' }
 #' @examples
+#' # Take a subset of the samples so the example runs faster
+#'
+#' # Here we are taking samples from the odd months
+#' sub_sample <- rownames(meta_table)[(meta_table$day_of_life%/%12)%%2==1]
+#' count_table_sub <- count_table[sub_sample,]
+#' processed_table_sub <- processed_table[sub_sample,]
+#' meta_table_sub <- meta_table[sub_sample,]
+#'
 #' # for count data from longitudinal microbiome studies
 #'
-#' datlist <- format_tempted(count_table,
-#'                           meta_table$day_of_life,
-#'                           meta_table$studyid,
+#' datlist <- format_tempted(count_table_sub,
+#'                           meta_table_sub$day_of_life,
+#'                           meta_table_sub$studyid,
 #'                           pseudo=0.5,
 #'                           transform="clr")
 #'
 #' mean_svd <- svd_centralize(datlist, r=1)
 #'
-#' res_tempted <- tempted(mean_svd$datlist, r=3, smooth=1e-5)
+#' res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
 #'
 #' # for preprocessed data that do not need to be transformed
 #'
-#' datlist <- format_tempted(processed_table,
-#'                           meta_table$day_of_life,
-#'                           meta_table$studyid,
-#'                           pseudo=NULL,
-#'                           transform="none")
+#' # datlist <- format_tempted(processed_table_sub,
+#' #                           meta_table_sub$day_of_life,
+#' #                           meta_table_sub$studyid,
+#' #                           pseudo=NULL,
+#' #                           transform="none")
 #'
-#' mean_svd <- svd_centralize(datlist, r=1)
+#' # mean_svd <- svd_centralize(datlist, r=1)
 #'
-#' res_tempted <- tempted(mean_svd$datlist, r=3, smooth=1e-5)
+#' # res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
 #'
 #' # plot the temporal loading
 #'
@@ -438,15 +446,23 @@ tdenoise <- function(res_tempted, mean_svd=NULL){
 #' @param mean_svd Result from \code{\link{svd_centralize}} ran on the training data.
 #' @return estimated subject loading of testing data
 #' @examples
+#' # Take a subset of the samples so the example runs faster
+#'
+#' # Here we are taking samples from the odd months
+#' sub_sample <- rownames(meta_table)[(meta_table$day_of_life%/%12)%%2==1]
+#' count_table_sub <- count_table[sub_sample,]
+#' processed_table_sub <- processed_table[sub_sample,]
+#' meta_table_sub <- meta_table[sub_sample,]
+#'
 #' # split the example data into training and testing
 #'
-#' id_test <- meta_table$studyid=="1"
+#' id_test <- meta_table_sub$studyid=="2"
 #'
-#' count_train <- count_table[!id_test,]
-#' meta_train <- meta_table[!id_test,]
+#' count_train <- count_table_sub[!id_test,]
+#' meta_train <- meta_table_sub[!id_test,]
 #'
-#' count_test <- count_table[id_test,]
-#' meta_test <- meta_table[id_test,]
+#' count_test <- count_table_sub[id_test,]
+#' meta_test <- meta_table_sub[id_test,]
 #'
 #' # run tempted on training data
 #'
@@ -460,7 +476,7 @@ tdenoise <- function(res_tempted, mean_svd=NULL){
 #' mean_svd_train <- svd_centralize(datlist_train, r=1)
 #'
 #' res_tempted_train <- tempted(mean_svd_train$datlist,
-#' r=3, smooth=1e-5)
+#' r=2, smooth=1e-5)
 #'
 #' # get the overlapping features
 #'
@@ -476,6 +492,21 @@ tdenoise <- function(res_tempted, mean_svd=NULL){
 #' # estimate the subject loading of the testing subject
 #'
 #' sub_test <- est_test_subject(datlist_test, res_tempted_train, mean_svd_train)
+#'
+#' # train logistic regression classifier on training subjects
+#'
+#' metauni <- unique(meta_table_sub[,c("studyid", "delivery")])
+#' rownames(metauni) <- metauni$studyid
+#' Atrain <- as.data.frame(res_tempted_train$A_hat)
+#' Atrain$delivery <- metauni[rownames(Atrain),"delivery"]=="Cesarean"
+#' glm_train <- glm(delivery ~ `Component 1`+`Component 2`,
+#'                  data=Atrain, family=binomial(link="logit"))
+#' summary(glm_train)
+#'
+#' # predict the label of testing subject, whose true label is "Cesarean"
+#'
+#' predict(glm_train, newdata=as.data.frame(sub_test), type="response")
+#'
 #' @export
 #' @md
 est_test_subject <- function(datlist, res_tempted, mean_svd=NULL){
@@ -542,27 +573,29 @@ est_test_subject <- function(datlist, res_tempted, mean_svd=NULL){
 #' @return A list of results.
 #' \describe{
 #'   \item{metafeature_aggregate}{The meta feature obtained by aggregating the observed temporal tensor. It is a data.frame with four columns: "value" for the meta feature values, "subID" for the subject ID, "timepoint" for the time points, and "PC" indicating which component was used to construct the meta feature.}
-#'   \item{metafeature_aggregate_est}{The meta feature obtained by aggregating the denoised temporal tensor. It has the same structure as \code{metafeature_aggregate}.}
 #'   \item{contrast}{The contrast used to linearly combine the components from input.}
 #'   \item{toppct}{A matrix of TRUE/FALSE indicating which features are aggregated in each component and contrast.}
 #' }
 #' @examples
-#' datlist <- format_tempted(count_table,
-#'                           meta_table$day_of_life,
-#'                           meta_table$studyid,
+#' # Take a subset of the samples so the example runs faster
+#'
+#' # Here we are taking samples from the odd months
+#' sub_sample <- rownames(meta_table)[(meta_table$day_of_life%/%12)%%2==1]
+#' count_table_sub <- count_table[sub_sample,]
+#' processed_table_sub <- processed_table[sub_sample,]
+#' meta_table_sub <- meta_table[sub_sample,]
+#'
+#' datlist <- format_tempted(count_table_sub,
+#'                           meta_table_sub$day_of_life,
+#'                           meta_table_sub$studyid,
 #'                           pseudo=0.5,
 #'                           transform="clr")
 #'
 #' mean_svd <- svd_centralize(datlist, r=1)
 #'
-#' res_tempted <- tempted(mean_svd$datlist, r=3, smooth=1e-5)
+#' res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
 #'
-#' datalist_raw <- format_tempted(count_table,
-#'                               meta_table$day_of_life,
-#'                               meta_table$studyid,
-#'                               transform="none")
-#'
-#' contrast <- cbind(c(1/2,1,0), c(1/2,-1,0))
+#' contrast <- cbind(c(1/2,1), c(1/2,-1))
 #'
 #' res_aggregate <- aggregate_feature(res_tempted,
 #'                                    mean_svd,
@@ -572,7 +605,9 @@ est_test_subject <- function(datlist, res_tempted, mean_svd=NULL){
 #'
 #' group <- unique(meta_table[, c("studyid", "delivery")])
 #'
-#' plot_metafeature(res_aggregate$metafeature_aggregate, group, bws=30)
+#' # plot the aggregated features
+#'
+#' # plot_metafeature(res_aggregate$metafeature_aggregate, group, bws=30)
 #' @export
 #' @md
 aggregate_feature <- function(res_tempted, mean_svd=NULL, datlist,
@@ -598,22 +633,7 @@ aggregate_feature <- function(res_tempted, mean_svd=NULL, datlist,
   }
   metafeature_aggregate <- metafeature_aggregate[,c("value", "subID", "timepoint", "PC")]
 
-  # estimated
-  tensor_est <- tdenoise(res_tempted, mean_svd)
-  tensor_est_agg <- apply(tensor_est, c(1,3), function(x){(t(B_data*toppct)%*%x)})
-  metafeature_aggregate_est <- NULL
-  for (i in 1:r){
-    tmp <- data.frame(value=as.vector(tensor_est_agg[i,,]),
-                      subID=rep(dimnames(tensor_est_agg)[[2]], dim(tensor_est_agg)[3]),
-                      timepoint=as.vector(t(matrix(res_tempted$time_Phi, length(res_tempted$time_Phi),dim(tensor_est_agg)[2]))),
-                      PC=colnames(B_data)[i])
-    metafeature_aggregate_est <- rbind(metafeature_aggregate_est,tmp)
-  }
-  metafeature_aggregate_est <- metafeature_aggregate_est[,c("value", "subID", "timepoint", "PC")]
-  metafeature_aggregate_est$type <- 'estimated'
-
   return(list(metafeature_aggregate=metafeature_aggregate,
-              metafeature_aggregate_est=metafeature_aggregate_est,
               contrast=contrast,
               toppct=toppct))
 }
@@ -644,27 +664,37 @@ aggregate_feature <- function(res_tempted, mean_svd=NULL, datlist,
 #'   \item{bottompct}{A matrix of TRUE/FALSE indicating which features are ranked bottom in each component (and contrast) and used as the denominator of the log ratio.}
 #' }
 #' @examples
-#' datlist <- format_tempted(count_table,
-#'                           meta_table$day_of_life,
-#'                           meta_table$studyid,
+#' # Take a subset of the samples so the example runs faster
+#'
+#' # Here we are taking samples from the odd months
+#' sub_sample <- rownames(meta_table)[(meta_table$day_of_life%/%12)%%2==1]
+#' count_table_sub <- count_table[sub_sample,]
+#' processed_table_sub <- processed_table[sub_sample,]
+#' meta_table_sub <- meta_table[sub_sample,]
+#'
+#' datlist <- format_tempted(count_table_sub,
+#'                           meta_table_sub$day_of_life,
+#'                           meta_table_sub$studyid,
 #'                           pseudo=0.5,
 #'                           transform="clr")
 #'
 #' mean_svd <- svd_centralize(datlist, r=1)
 #'
-#' res_tempted <- tempted(mean_svd$datlist, r=3, smooth=1e-5)
+#' res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
 #'
-#' datalist_raw <- format_tempted(count_table, meta_table$day_of_life, meta_table$studyid,
+#' datalist_raw <- format_tempted(count_table_sub, meta_table_sub$day_of_life, meta_table_sub$studyid,
 #' transform="none")
 #'
-#' contrast <- cbind(c(1,1,0), c(1,-1,0))
+#' contrast <- cbind(c(1,1), c(1,-1))
 #'
 #' res_ratio <- ratio_feature(res_tempted, datalist_raw, pct=0.1,
 #' absolute=FALSE, contrast=contrast)
 #'
 #' group <- unique(meta_table[, c("studyid", "delivery")])
 #'
-#' plot_metafeature(res_ratio$metafeature_ratio, group, bws=30)
+#' # plot the log ratios
+#'
+#' # plot_metafeature(res_ratio$metafeature_ratio, group, bws=30)
 #' @export
 #' @md
 ratio_feature <- function(res_tempted, datlist,
@@ -795,35 +825,43 @@ ratio_feature <- function(res_tempted, datlist,
 #'   \item{contrast}{The contrast used to linearly combine the components from input.}
 #' }
 #' @examples
+#' #' # Take a subset of the samples so the example runs faster
+#'
+#' # Here we are taking samples from the odd months
+#' sub_sample <- rownames(meta_table)[(meta_table$day_of_life%/%12)%%2==1]
+#' count_table_sub <- count_table[sub_sample,]
+#' processed_table_sub <- processed_table[sub_sample,]
+#' meta_table_sub <- meta_table[sub_sample,]
+#'
 #' # for preprocessed data that do not need to be transformed
 #'
-#' res.processed <- tempted_all(processed_table,
-#'                              meta_table$day_of_life,
-#'                              meta_table$studyid,
-#'                              threshold=1,
-#'                              transform="none",
-#'                              r=2,
-#'                              smooth=1e-5,
-#'                              do_ratio=FALSE)
+#' # res.processed <- tempted_all(processed_table_sub,
+#' #                              meta_table_sub$day_of_life,
+#' #                             meta_table_sub$studyid,
+#' #                              threshold=1,
+#' #                              transform="none",
+#' #                              r=2,
+#' #                              smooth=1e-5,
+#' #                              do_ratio=FALSE)
 #'
 #' # for count data that will have pseudo added and clr transformed
 #'
-#' res.count <- tempted_all(count_table,
-#'                          meta_table$day_of_life,
-#'                          meta_table$studyid,
-#'                          threshold=0.95,
-#'                          transform="clr",
-#'                          pseudo=0.5,
-#'                          r=2,
-#'                          smooth=1e-5,
-#'                          pct_ratio=0.1,
-#'                          pct_aggregate=1)
+#' # res.count <- tempted_all(count_table_sub,
+#' #                          meta_table_sub$day_of_life,
+#' #                          meta_table_sub$studyid,
+#' #                          threshold=0.95,
+#' #                          transform="clr",
+#' #                          pseudo=0.5,
+#' #                          r=2,
+#' #                          smooth=1e-5,
+#' #                          pct_ratio=0.1,
+#' #                          pct_aggregate=1)
 #'
 #' # for proportional data that will have pseudo added and clr transformed
 #'
-#' res.proportion <- tempted_all(count_table/rowSums(count_table),
-#'                               meta_table$day_of_life,
-#'                               meta_table$studyid,
+#' res.proportion <- tempted_all(count_table_sub/rowSums(count_table_sub),
+#'                               meta_table_sub$day_of_life,
+#'                               meta_table_sub$studyid,
 #'                               threshold=0.95,
 #'                               transform="clr",
 #'                               pseudo=NULL,
@@ -838,7 +876,9 @@ ratio_feature <- function(res_tempted, datlist,
 #'
 #' group <- unique(meta_table[,c("studyid", "delivery")])
 #'
-#' plot_metafeature(res.proportion$metafeature_aggregate, group, bws=30)
+#' # plot the aggregated features
+#'
+#' # plot_metafeature(res.proportion$metafeature_aggregate, group, bws=30)
 #' @export
 #' @md
 tempted_all <- function(featuretable, timepoint, subjectID,

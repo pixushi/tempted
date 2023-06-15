@@ -55,29 +55,37 @@ The estimations of the loadings.
 This is the main function of tempted.
 }
 \examples{
+# Take a subset of the samples so the example runs faster
+
+# Here we are taking samples from the odd months
+sub_sample <- rownames(meta_table)[(meta_table$day_of_life\%/\%12)\%\%2==1]
+count_table_sub <- count_table[sub_sample,]
+processed_table_sub <- processed_table[sub_sample,]
+meta_table_sub <- meta_table[sub_sample,]
+
 # for count data from longitudinal microbiome studies
 
-datlist <- format_tempted(count_table,
-                          meta_table$day_of_life,
-                          meta_table$studyid,
+datlist <- format_tempted(count_table_sub,
+                          meta_table_sub$day_of_life,
+                          meta_table_sub$studyid,
                           pseudo=0.5,
                           transform="clr")
 
 mean_svd <- svd_centralize(datlist, r=1)
 
-res_tempted <- tempted(mean_svd$datlist, r=3, smooth=1e-5)
+res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
 
 # for preprocessed data that do not need to be transformed
 
-datlist <- format_tempted(processed_table,
-                          meta_table$day_of_life,
-                          meta_table$studyid,
-                          pseudo=NULL,
-                          transform="none")
+# datlist <- format_tempted(processed_table_sub,
+#                           meta_table_sub$day_of_life,
+#                           meta_table_sub$studyid,
+#                           pseudo=NULL,
+#                           transform="none")
 
-mean_svd <- svd_centralize(datlist, r=1)
+# mean_svd <- svd_centralize(datlist, r=1)
 
-res_tempted <- tempted(mean_svd$datlist, r=3, smooth=1e-5)
+# res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
 
 # plot the temporal loading
 

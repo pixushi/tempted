@@ -130,35 +130,43 @@ This function wraps functions \code{\link{format_tempted}}, \code{\link{svd_cent
 and \code{\link{aggregate_feature}}.
 }
 \examples{
+#' # Take a subset of the samples so the example runs faster
+
+# Here we are taking samples from the odd months
+sub_sample <- rownames(meta_table)[(meta_table$day_of_life\%/\%12)\%\%2==1]
+count_table_sub <- count_table[sub_sample,]
+processed_table_sub <- processed_table[sub_sample,]
+meta_table_sub <- meta_table[sub_sample,]
+
 # for preprocessed data that do not need to be transformed
 
-res.processed <- tempted_all(processed_table,
-                             meta_table$day_of_life,
-                             meta_table$studyid,
-                             threshold=1,
-                             transform="none",
-                             r=2,
-                             smooth=1e-5,
-                             do_ratio=FALSE)
+# res.processed <- tempted_all(processed_table_sub,
+#                              meta_table_sub$day_of_life,
+#                             meta_table_sub$studyid,
+#                              threshold=1,
+#                              transform="none",
+#                              r=2,
+#                              smooth=1e-5,
+#                              do_ratio=FALSE)
 
 # for count data that will have pseudo added and clr transformed
 
-res.count <- tempted_all(count_table,
-                         meta_table$day_of_life,
-                         meta_table$studyid,
-                         threshold=0.95,
-                         transform="clr",
-                         pseudo=0.5,
-                         r=2,
-                         smooth=1e-5,
-                         pct_ratio=0.1,
-                         pct_aggregate=1)
+# res.count <- tempted_all(count_table_sub,
+#                          meta_table_sub$day_of_life,
+#                          meta_table_sub$studyid,
+#                          threshold=0.95,
+#                          transform="clr",
+#                          pseudo=0.5,
+#                          r=2,
+#                          smooth=1e-5,
+#                          pct_ratio=0.1,
+#                          pct_aggregate=1)
 
 # for proportional data that will have pseudo added and clr transformed
 
-res.proportion <- tempted_all(count_table/rowSums(count_table),
-                              meta_table$day_of_life,
-                              meta_table$studyid,
+res.proportion <- tempted_all(count_table_sub/rowSums(count_table_sub),
+                              meta_table_sub$day_of_life,
+                              meta_table_sub$studyid,
                               threshold=0.95,
                               transform="clr",
                               pseudo=NULL,
@@ -173,5 +181,7 @@ plot_time_loading(res.proportion, r=2)
 
 group <- unique(meta_table[,c("studyid", "delivery")])
 
-plot_metafeature(res.proportion$metafeature_aggregate, group, bws=30)
+# plot the aggregated features
+
+# plot_metafeature(res.proportion$metafeature_aggregate, group, bws=30)
 }

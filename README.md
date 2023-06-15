@@ -69,6 +69,7 @@ mirobiome studies. This document is split into four sections:
 3.  Run TEMPTED for General Form of Multivariate Longitudinal Data
     (Straightforward Way)
 4.  Run TEMPTED in Customized Way
+5.  Transferring TEMPTED result from training to testing data
 
 ### Run TEMPTED for Microbiome Count Data (Straightforward Way)
 
@@ -134,9 +135,9 @@ res_count <- tempted_all(count_table,
                          pct_ratio=0.1,
                          pct_aggregate=1)
 #> [1] "Calculate the 1th Component"
-#> [1] "Convergence reached at dif=3.57400411456435e-05, iter=4"
+#> [1] "Convergence reached at dif=3.57400400849311e-05, iter=4"
 #> [1] "Calculate the 2th Component"
-#> [1] "Convergence reached at dif=4.7458092913102e-05, iter=7"
+#> [1] "Convergence reached at dif=4.745809269163e-05, iter=7"
 ```
 
 #### Low-dimensional representation of subjects
@@ -274,9 +275,9 @@ res_proportion <- tempted_all(proportion_table,
                               r=2,
                               smooth=1e-5)
 #> [1] "Calculate the 1th Component"
-#> [1] "Convergence reached at dif=3.57400414250714e-05, iter=4"
+#> [1] "Convergence reached at dif=3.57400414642375e-05, iter=4"
 #> [1] "Calculate the 2th Component"
-#> [1] "Convergence reached at dif=4.74580927714221e-05, iter=7"
+#> [1] "Convergence reached at dif=4.7458092689688e-05, iter=7"
 ```
 
 #### Low-dimensional representation of subjects
@@ -397,9 +398,9 @@ res_processed <- tempted_all(processed_table,
                              smooth=1e-5,
                              do_ratio=FALSE)
 #> [1] "Calculate the 1th Component"
-#> [1] "Convergence reached at dif=3.81574127636251e-05, iter=4"
+#> [1] "Convergence reached at dif=3.8157412154411e-05, iter=4"
 #> [1] "Calculate the 2th Component"
-#> [1] "Convergence reached at dif=2.44419511666456e-05, iter=7"
+#> [1] "Convergence reached at dif=2.44419512850139e-05, iter=7"
 ```
 
 #### Low-dimensional representation of subjects
@@ -532,9 +533,9 @@ temporal loading.
 svd_tempted <- svd_centralize(datlist)
 res_tempted <- tempted(svd_tempted$datlist, r = 2, resolution = 101, smooth=1e-5)
 #> [1] "Calculate the 1th Component"
-#> [1] "Convergence reached at dif=3.53146145162134e-05, iter=4"
+#> [1] "Convergence reached at dif=3.531461408802e-05, iter=4"
 #> [1] "Calculate the 2th Component"
-#> [1] "Convergence reached at dif=4.3778326665428e-05, iter=7"
+#> [1] "Convergence reached at dif=4.37783267396658e-05, iter=7"
 # alternatively, you can replace the two lines above by the two lines below.
 # the 2nd and 3rd component in the result below will be 
 # similar to the 1st and 2nd component in the result above.
@@ -666,3 +667,103 @@ grid.arrange(p_topfeat, p_topfeat_summary, nrow=2)
 ```
 
 <img src="man/figures/README-plot_top_feature-1.png" width="100%" />
+
+### Transferring TEMPTED result from training to testing data
+
+#### Split the example data into training and testing
+
+Here we take thes subject with `studyid="2"` as the testing subject, and
+the remaining subjects as training subjects.
+
+``` r
+id_test <- meta_table$studyid=="2"
+
+count_train <- count_table[!id_test,]
+meta_train <- meta_table[!id_test,]
+
+count_test <- count_table[id_test,]
+meta_test <- meta_table[id_test,]
+```
+
+#### Run tempted on training subjects
+
+``` r
+datlist_train <- format_tempted(count_train,
+                                meta_train$day_of_life,
+                                meta_train$studyid,
+                                threshold=0.95,
+                                pseudo=0.5,
+                                transform="clr")
+
+mean_svd_train <- svd_centralize(datlist_train, r=1)
+
+res_tempted_train <- tempted(mean_svd_train$datlist,
+r=2, smooth=1e-5)
+#> [1] "Calculate the 1th Component"
+#> [1] "Convergence reached at dif=3.89952383939211e-05, iter=4"
+#> [1] "Calculate the 2th Component"
+#> [1] "Convergence reached at dif=4.45458808530784e-05, iter=7"
+```
+
+#### Obtain subject loading for testing subject
+
+**IMPORTANT NOTE**: the testing samples should contain the features in
+the training data.
+
+``` r
+# get the overlapping features between testing and training
+count_test <- count_test[,rownames(datlist_train[[1]])[-1]]
+
+# format testing data
+datlist_test <- format_tempted(count_test,
+                               meta_test$day_of_life,
+                               meta_test$studyid,
+                               threshold=1,
+                               pseudo=0.5,
+                               transform="clr")
+
+# estimate the subject loading of the testing subject
+sub_test <- est_test_subject(datlist_test, res_tempted_train, mean_svd_train)
+sub_test
+#>   Component 1 Component 2
+#> 2 -0.07967744   0.1688863
+```
+
+Here we use logistic regression to illustrate how the subject loadings
+of the testing data can be used.
+
+``` r
+# train logistic regression classifier on training subjects
+metauni <- unique(meta_table[,c("studyid", "delivery")])
+rownames(metauni) <- metauni$studyid
+Atrain <- as.data.frame(res_tempted_train$A_hat)
+Atrain$delivery <- metauni[rownames(Atrain),"delivery"]=="Cesarean"
+glm_train <- glm(delivery ~ `Component 1`+`Component 2`,
+                 data=Atrain, family=binomial(link="logit"))
+summary(glm_train)
+#> 
+#> Call:
+#> glm(formula = delivery ~ `Component 1` + `Component 2`, family = binomial(link = "logit"), 
+#>     data = Atrain)
+#> 
+#> Coefficients:
+#>               Estimate Std. Error z value Pr(>|z|)   
+#> (Intercept)     -2.965      1.652  -1.795  0.07266 . 
+#> `Component 1`  -11.334      9.129  -1.242  0.21440   
+#> `Component 2`   16.865      5.529   3.050  0.00229 **
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for binomial family taken to be 1)
+#> 
+#>     Null deviance: 55.637  on 40  degrees of freedom
+#> Residual deviance: 34.562  on 38  degrees of freedom
+#> AIC: 40.562
+#> 
+#> Number of Fisher Scoring iterations: 6
+
+# predict the label of testing subject "2", whose true label is "Cesarean"
+predict(glm_train, newdata=as.data.frame(sub_test), type="response")
+#>         2 
+#> 0.6870014
+```

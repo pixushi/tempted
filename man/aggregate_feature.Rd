@@ -33,7 +33,6 @@ the feature loadings of r components.}
 A list of results.
 \describe{
 \item{metafeature_aggregate}{The meta feature obtained by aggregating the observed temporal tensor. It is a data.frame with four columns: "value" for the meta feature values, "subID" for the subject ID, "timepoint" for the time points, and "PC" indicating which component was used to construct the meta feature.}
-\item{metafeature_aggregate_est}{The meta feature obtained by aggregating the denoised temporal tensor. It has the same structure as \code{metafeature_aggregate}.}
 \item{contrast}{The contrast used to linearly combine the components from input.}
 \item{toppct}{A matrix of TRUE/FALSE indicating which features are aggregated in each component and contrast.}
 }
@@ -45,22 +44,25 @@ It can also aggregate features by using the combination of multiple components b
 by a linear combination of feature loadings from multiple components.
 }
 \examples{
-datlist <- format_tempted(count_table,
-                          meta_table$day_of_life,
-                          meta_table$studyid,
+# Take a subset of the samples so the example runs faster
+
+# Here we are taking samples from the odd months
+sub_sample <- rownames(meta_table)[(meta_table$day_of_life\%/\%12)\%\%2==1]
+count_table_sub <- count_table[sub_sample,]
+processed_table_sub <- processed_table[sub_sample,]
+meta_table_sub <- meta_table[sub_sample,]
+
+datlist <- format_tempted(count_table_sub,
+                          meta_table_sub$day_of_life,
+                          meta_table_sub$studyid,
                           pseudo=0.5,
                           transform="clr")
 
 mean_svd <- svd_centralize(datlist, r=1)
 
-res_tempted <- tempted(mean_svd$datlist, r=3, smooth=1e-5)
+res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
 
-datalist_raw <- format_tempted(count_table,
-                              meta_table$day_of_life,
-                              meta_table$studyid,
-                              transform="none")
-
-contrast <- cbind(c(1/2,1,0), c(1/2,-1,0))
+contrast <- cbind(c(1/2,1), c(1/2,-1))
 
 res_aggregate <- aggregate_feature(res_tempted,
                                    mean_svd,
@@ -70,5 +72,7 @@ res_aggregate <- aggregate_feature(res_tempted,
 
 group <- unique(meta_table[, c("studyid", "delivery")])
 
-plot_metafeature(res_aggregate$metafeature_aggregate, group, bws=30)
+# plot the aggregated features
+
+# plot_metafeature(res_aggregate$metafeature_aggregate, group, bws=30)
 }
