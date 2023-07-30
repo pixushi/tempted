@@ -8,13 +8,13 @@
 A data.frame with rows representing samples and matching with data.frame \code{meta_table}
 and columns representing microbial features (i.e. OTUs). Each entry is a read count.
 }
-\source{
-Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
-}
 \usage{
 count_table
 }
 \description{
 OTU read count table from the ECAM data
+}
+\references{
+Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
 }
 \keyword{datasets}

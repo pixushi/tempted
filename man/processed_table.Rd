@@ -11,13 +11,13 @@ Entries do not need to be transformed, and will be directly used by \code{\link{
 This data.frame is used to illustrate how \code{\link{tempted}} can be used for
 general form of multivariate longitudinal data already preprocessed by user.
 }
-\source{
-Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
-}
 \usage{
 processed_table
 }
 \description{
 Central-log-ratio (clr) transformed OTU table from the ECAM data
+}
+\references{
+Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
 }
 \keyword{datasets}

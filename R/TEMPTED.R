@@ -1,7 +1,3 @@
-library(ggplot2)
-library(np)
-
-
 #' @title Decomposition of temporal tensor
 #' @description This is the main function of tempted.
 #' @param datlist A length n list of matrices.
@@ -53,17 +49,17 @@ library(np)
 #' res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
 #'
 #' # for preprocessed data that do not need to be transformed
+#' \donttest{
+#' datlist <- format_tempted(processed_table_sub,
+#'                           meta_table_sub$day_of_life,
+#'                           meta_table_sub$studyid,
+#'                           pseudo=NULL,
+#'                           transform="none")
 #'
-#' # datlist <- format_tempted(processed_table_sub,
-#' #                           meta_table_sub$day_of_life,
-#' #                           meta_table_sub$studyid,
-#' #                           pseudo=NULL,
-#' #                           transform="none")
+#' mean_svd <- svd_centralize(datlist, r=1)
 #'
-#' # mean_svd <- svd_centralize(datlist, r=1)
-#'
-#' # res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
-#'
+#' res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
+#' }
 #' # plot the temporal loading
 #'
 #' plot_time_loading(res_tempted, r=2)
@@ -150,7 +146,7 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
   # calculate rank-1 component sequentially.
   for (s in 1:r){
     # Step 1: initialization.
-    print(sprintf("Calculate the %dth Component", s))
+    message(sprintf("Calculate the %dth Component", s))
 
     # intialization of b
     data_unfold = NULL
@@ -226,7 +222,7 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
       datlist[[i]][2:(p+1),which(temp)] <- datlist[[i]][2:(p+1),which(temp)] -
         Lambda[s] * A[i,s] * (B[,s] %*% t(Phi[ti[[i]][temp],s]))
     }
-    print(paste0("Convergence reached at dif=", dif, ', iter=', t))
+    message(paste0("Convergence reached at dif=", dif, ', iter=', t))
   }
   lm_fit <- lm(y0~X-1)
   Lambda <- as.numeric(lm_fit$coefficients)
@@ -278,6 +274,8 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
 #'   \item{B_tilde}{The feature singular vector of the mean structure, a feature by r matrix.}
 #'   \item{lambda_tilde}{The singular value of the mean structure, a length r vector.}
 #' }
+#' @references
+#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
 #' @seealso Examples can be found in \code{\link{tempted}}.
 #' @export
 #' @md
@@ -366,7 +364,7 @@ format_tempted <- function(featuretable, timepoint, subjectID,
   }else if(transform=='none'){
     featuretable <- t(featuretable)
   }else{
-    print('Input transformation method is wrong! logcomp is applied instead')
+    message('Input transformation method is wrong! logcomp is applied instead')
     featuretable <- featuretable+pseudo
     featuretable <- t(log(featuretable/rowSums(featuretable)))
   }
@@ -381,7 +379,6 @@ format_tempted <- function(featuretable, timepoint, subjectID,
 
   # Each slice represents an individual (unequal sized matrix).
   for (i in 1:nsub){
-    # print(i)
     datlist[[i]] <- featuretable[, subjectID==subID[i]]
     datlist[[i]] <- datlist[[i]][,order(datlist[[i]][1,])]
     datlist[[i]] <- datlist[[i]][,!duplicated(datlist[[i]][1,])]
@@ -397,6 +394,8 @@ format_tempted <- function(featuretable, timepoint, subjectID,
 #' RKHS regression that iteratively updates the temporal loading function.
 #' @param x,y Two values between which the Bernoulli kernel is calculated.
 #' @return The calculated kernel between \code{x} and \code{y}.
+#' @references
+#' Han, R., Shi, P. and Zhang, A.R. (2023) \emph{Guaranteed functional tensor singular value decomposition}. Journal of the American Statistical Association, pp.1-13. doi: 10.1080/01621459.2022.2153689.
 #' @md
 bernoulli_kernel <- function(x, y){
   k1_x <- x-0.5
@@ -445,6 +444,8 @@ tdenoise <- function(res_tempted, mean_svd=NULL){
 #' @param res_tempted Result from \code{\link{tempted}} ran on the training data.
 #' @param mean_svd Result from \code{\link{svd_centralize}} ran on the training data.
 #' @return estimated subject loading of testing data
+#' @references
+#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
 #' @examples
 #' # Take a subset of the samples so the example runs faster
 #'
@@ -573,9 +574,12 @@ est_test_subject <- function(datlist, res_tempted, mean_svd=NULL){
 #' @return A list of results.
 #' \describe{
 #'   \item{metafeature_aggregate}{The meta feature obtained by aggregating the observed temporal tensor. It is a data.frame with four columns: "value" for the meta feature values, "subID" for the subject ID, "timepoint" for the time points, and "PC" indicating which component was used to construct the meta feature.}
+#'   \item{metafeature_aggregate_est}{The meta feature obtained by aggregating the denoised temporal tensor. It has the same structure as \code{metafeature_aggregate}.}
 #'   \item{contrast}{The contrast used to linearly combine the components from input.}
 #'   \item{toppct}{A matrix of TRUE/FALSE indicating which features are aggregated in each component and contrast.}
 #' }
+#' @references
+#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
 #' @examples
 #' # Take a subset of the samples so the example runs faster
 #'
@@ -595,7 +599,7 @@ est_test_subject <- function(datlist, res_tempted, mean_svd=NULL){
 #'
 #' res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
 #'
-#' contrast <- cbind(c(1/2,1), c(1/2,-1))
+#' contrast <- matrix(c(1/2,1), 2, 1)
 #'
 #' res_aggregate <- aggregate_feature(res_tempted,
 #'                                    mean_svd,
@@ -603,11 +607,13 @@ est_test_subject <- function(datlist, res_tempted, mean_svd=NULL){
 #'                                    pct=1,
 #'                                    contrast=contrast)
 #'
-#' group <- unique(meta_table[, c("studyid", "delivery")])
-#'
 #' # plot the aggregated features
 #'
-#' # plot_metafeature(res_aggregate$metafeature_aggregate, group, bws=30)
+#' \donttest{
+#' group <- unique(meta_table[, c("studyid", "delivery")])
+#'
+#' plot_metafeature(res_aggregate$metafeature_aggregate, group, bws=30)
+#' }
 #' @export
 #' @md
 aggregate_feature <- function(res_tempted, mean_svd=NULL, datlist,
@@ -626,14 +632,29 @@ aggregate_feature <- function(res_tempted, mean_svd=NULL, datlist,
   for (i in 1:length(datalist_agg)){
     tmp <- data.frame(value=as.vector(datalist_agg[[i]]),
                       subID=names(datalist_agg)[i],
-                      timepoint=as.vector(t(matrix(datlist[[i]][1,], ncol(datlist[[i]]), ncol(B_data)))),
+                      timepoint=rep(datlist[[i]][1,], each=ncol(B_data)),
                       PC=rep(rownames(datalist_agg[[i]]), ncol(datalist_agg[[i]])))
 
     metafeature_aggregate <- rbind(metafeature_aggregate, tmp)
   }
   metafeature_aggregate <- metafeature_aggregate[,c("value", "subID", "timepoint", "PC")]
 
+  # estimated
+  tensor_est <- tdenoise(res_tempted, mean_svd)
+  tensor_est_agg <- apply(tensor_est, c(1,3), function(x){(t(B_data*toppct)%*%x)})
+  metafeature_aggregate_est <- NULL
+  for (i in 1:r){
+    tmp <- data.frame(value=as.vector(tensor_est_agg[i,,]),
+                      subID=rep(dimnames(tensor_est_agg)[[2]], dim(tensor_est_agg)[3]),
+                      timepoint=rep(res_tempted$time_Phi, each=dim(tensor_est_agg)[2]),
+                      PC=colnames(B_data)[i])
+    metafeature_aggregate_est <- rbind(metafeature_aggregate_est,tmp)
+  }
+  metafeature_aggregate_est <- metafeature_aggregate_est[,c("value", "subID", "timepoint", "PC")]
+  metafeature_aggregate_est$type <- 'estimated'
+
   return(list(metafeature_aggregate=metafeature_aggregate,
+              metafeature_aggregate_est=metafeature_aggregate_est,
               contrast=contrast,
               toppct=toppct))
 }
@@ -663,6 +684,8 @@ aggregate_feature <- function(res_tempted, mean_svd=NULL, datlist,
 #'   \item{toppct}{A matrix of TRUE/FALSE indicating which features are ranked top in each component (and contrast) and used as the numerator of the log ratio.}
 #'   \item{bottompct}{A matrix of TRUE/FALSE indicating which features are ranked bottom in each component (and contrast) and used as the denominator of the log ratio.}
 #' }
+#' @references
+#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
 #' @examples
 #' # Take a subset of the samples so the example runs faster
 #'
@@ -693,8 +716,9 @@ aggregate_feature <- function(res_tempted, mean_svd=NULL, datlist,
 #' group <- unique(meta_table[, c("studyid", "delivery")])
 #'
 #' # plot the log ratios
-#'
-#' # plot_metafeature(res_ratio$metafeature_ratio, group, bws=30)
+#' \donttest{
+#' plot_metafeature(res_ratio$metafeature_ratio, group, bws=30)
+#' }
 #' @export
 #' @md
 ratio_feature <- function(res_tempted, datlist,
@@ -726,7 +750,7 @@ ratio_feature <- function(res_tempted, datlist,
   for (i in 1:length(datlist_ratio)){
     tmp <- data.frame(value=as.vector(datlist_ratio[[i]]),
                       subID=names(datlist_ratio)[i],
-                      timepoint=as.vector(t(matrix(datlist[[i]][1,], ncol(datlist[[i]]), ncol(B_data)))),
+                      timepoint=rep(datlist[[i]][1,], each=ncol(B_data)),
                       PC=rep(rownames(datlist_ratio[[i]]), ncol(datlist_ratio[[i]])))
 
     metafeature_ratio <- rbind(metafeature_ratio, tmp)
@@ -824,8 +848,10 @@ ratio_feature <- function(res_tempted, datlist,
 #'   \item{toppct_aggregate}{A matrix of TRUE/FALSE indicating which features are aggregated in each component and contrast.}
 #'   \item{contrast}{The contrast used to linearly combine the components from input.}
 #' }
+#' @references
+#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
 #' @examples
-#' #' # Take a subset of the samples so the example runs faster
+#' # Take a subset of the samples so the example runs faster
 #'
 #' # Here we are taking samples from the odd months
 #' sub_sample <- rownames(meta_table)[(meta_table$day_of_life%/%12)%%2==1]
@@ -835,28 +861,29 @@ ratio_feature <- function(res_tempted, datlist,
 #'
 #' # for preprocessed data that do not need to be transformed
 #'
-#' # res.processed <- tempted_all(processed_table_sub,
-#' #                              meta_table_sub$day_of_life,
-#' #                             meta_table_sub$studyid,
-#' #                              threshold=1,
-#' #                              transform="none",
-#' #                              r=2,
-#' #                              smooth=1e-5,
-#' #                              do_ratio=FALSE)
+#' \donttest{
+#' res.processed <- tempted_all(processed_table_sub,
+#'                              meta_table_sub$day_of_life,
+#'                             meta_table_sub$studyid,
+#'                              threshold=1,
+#'                              transform="none",
+#'                              r=2,
+#'                              smooth=1e-5,
+#'                              do_ratio=FALSE)
 #'
 #' # for count data that will have pseudo added and clr transformed
 #'
-#' # res.count <- tempted_all(count_table_sub,
-#' #                          meta_table_sub$day_of_life,
-#' #                          meta_table_sub$studyid,
-#' #                          threshold=0.95,
-#' #                          transform="clr",
-#' #                          pseudo=0.5,
-#' #                          r=2,
-#' #                          smooth=1e-5,
-#' #                          pct_ratio=0.1,
-#' #                          pct_aggregate=1)
-#'
+#' res.count <- tempted_all(count_table_sub,
+#'                          meta_table_sub$day_of_life,
+#'                          meta_table_sub$studyid,
+#'                          threshold=0.95,
+#'                          transform="clr",
+#'                          pseudo=0.5,
+#'                          r=2,
+#'                          smooth=1e-5,
+#'                          pct_ratio=0.1,
+#'                          pct_aggregate=1)
+#' }
 #' # for proportional data that will have pseudo added and clr transformed
 #'
 #' res.proportion <- tempted_all(count_table_sub/rowSums(count_table_sub),
@@ -877,8 +904,9 @@ ratio_feature <- function(res_tempted, datlist,
 #' group <- unique(meta_table[,c("studyid", "delivery")])
 #'
 #' # plot the aggregated features
-#'
-#' # plot_metafeature(res.proportion$metafeature_aggregate, group, bws=30)
+#' \donttest{
+#' plot_metafeature(res.proportion$metafeature_aggregate, group, bws=30)
+#' }
 #' @export
 #' @md
 tempted_all <- function(featuretable, timepoint, subjectID,
@@ -1050,7 +1078,7 @@ plot_time_loading <- function(res, r=NULL, ...){
   Phi_data <- Phi_data[,1:r]
   ntime <- nrow(Phi_data)
   Phi_data <- data.frame(timepoint=res$time_Phi, value=as.vector(Phi_data),
-                         component=as.factor(as.vector(t(matrix(rep(1:r,ntime),r,)))))
+                         component=as.factor(rep(1:r,each=ntime)))
   .data <- NULL
   ptime <- ggplot(data=Phi_data, aes(x=.data$timepoint, y=.data$value, color=.data$component)) + geom_line(aes(...))
   return(ptime)
@@ -1065,7 +1093,7 @@ plot_time_loading <- function(res, r=NULL, ...){
 #'     \item{delivery}{character denoting the delivery mode of the infants.}
 #'     \item{day_of_life}{character denoting the age of infants measured in days when microbiome sample was taken.}
 #' }
-#' @source Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
+#' @references Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
 #' @md
 "meta_table"
 
@@ -1073,7 +1101,7 @@ plot_time_loading <- function(res, r=NULL, ...){
 #' OTU read count table from the ECAM data
 #' @format A data.frame with rows representing samples and matching with data.frame \code{meta_table}
 #' and columns representing microbial features (i.e. OTUs). Each entry is a read count.
-#' @source Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
+#' @references Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
 #' @md
 "count_table"
 
@@ -1084,7 +1112,7 @@ plot_time_loading <- function(res, r=NULL, ...){
 #' Entries do not need to be transformed, and will be directly used by \code{\link{tempted}}.
 #' This data.frame is used to illustrate how \code{\link{tempted}} can be used for
 #' general form of multivariate longitudinal data already preprocessed by user.
-#' @source Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
+#' @references Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
 #' @md
 "processed_table"
 

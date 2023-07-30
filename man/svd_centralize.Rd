@@ -29,6 +29,9 @@ This function first average the feature value of all time points for each subjec
 Next, it performs a singular value decomposition of this matrix and construct the matrix's rank-r approximation.
 Then, it subtracts this rank-r subject by feature matrix from the temporal tensor.
 }
+\references{
+Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
+}
 \seealso{
 Examples can be found in \code{\link{tempted}}.
 }

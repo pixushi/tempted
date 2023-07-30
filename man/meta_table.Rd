@@ -13,13 +13,13 @@ and three columns:
 \item{day_of_life}{character denoting the age of infants measured in days when microbiome sample was taken.}
 }
 }
-\source{
-Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
-}
 \usage{
 meta_table
 }
 \description{
 Meta data table from the ECAM data
+}
+\references{
+Bokulich, Nicholas A., et al. "Antibiotics, birth mode, and diet shape microbiome maturation during early life." Science translational medicine 8.343 (2016): 343ra82-343ra82.
 }
 \keyword{datasets}

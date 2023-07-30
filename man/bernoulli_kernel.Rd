@@ -16,3 +16,6 @@ The calculated kernel between \code{x} and \code{y}.
 This function is used to calculate the kernel matrix for the
 RKHS regression that iteratively updates the temporal loading function.
 }
+\references{
+Han, R., Shi, P. and Zhang, A.R. (2023) \emph{Guaranteed functional tensor singular value decomposition}. Journal of the American Statistical Association, pp.1-13. doi: 10.1080/01621459.2022.2153689.
+}

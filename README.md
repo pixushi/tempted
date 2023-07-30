@@ -13,8 +13,16 @@ devtools::install_github("pixushi/tempted")
 
 To use our method, please cite the following paper:
 
-[Rungang Han, Pixu Shi, Anru R. Zhang, Guaranteed Functional Tensor
-Singular Value Decomposition](https://arxiv.org/abs/2108.04201)
+Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight
+R, Shenhav L, Zhang AR. [Time-Informed Dimensionality Reduction for
+Longitudinal Microbiome Studies.
+bioRxiv.](https://www.biorxiv.org/content/10.1101/2023.07.26.550749v1)
+
+The statistical theories behind this method can be found in this paper:
+
+Han R, Shi P, Zhang AR. [Guaranteed Functional Tensor Singular Value
+Decomposition. Journal of the American Statistical Association (2023):
+1-13.](https://www.tandfonline.com/doi/full/10.1080/01621459.2022.2153689)
 
 ### Load packages for this vignette
 
@@ -134,10 +142,10 @@ res_count <- tempted_all(count_table,
                          smooth=1e-5,
                          pct_ratio=0.1,
                          pct_aggregate=1)
-#> [1] "Calculate the 1th Component"
-#> [1] "Convergence reached at dif=3.57400400849311e-05, iter=4"
-#> [1] "Calculate the 2th Component"
-#> [1] "Convergence reached at dif=4.745809269163e-05, iter=7"
+#> Calculate the 1th Component
+#> Convergence reached at dif=3.57400400849311e-05, iter=4
+#> Calculate the 2th Component
+#> Convergence reached at dif=4.745809269163e-05, iter=7
 ```
 
 #### Low-dimensional representation of subjects
@@ -274,10 +282,10 @@ res_proportion <- tempted_all(proportion_table,
                               pseudo=NULL,
                               r=2,
                               smooth=1e-5)
-#> [1] "Calculate the 1th Component"
-#> [1] "Convergence reached at dif=3.57400414642375e-05, iter=4"
-#> [1] "Calculate the 2th Component"
-#> [1] "Convergence reached at dif=4.7458092689688e-05, iter=7"
+#> Calculate the 1th Component
+#> Convergence reached at dif=3.57400414642375e-05, iter=4
+#> Calculate the 2th Component
+#> Convergence reached at dif=4.7458092689688e-05, iter=7
 ```
 
 #### Low-dimensional representation of subjects
@@ -397,10 +405,10 @@ res_processed <- tempted_all(processed_table,
                              r=2,
                              smooth=1e-5,
                              do_ratio=FALSE)
-#> [1] "Calculate the 1th Component"
-#> [1] "Convergence reached at dif=3.8157412154411e-05, iter=4"
-#> [1] "Calculate the 2th Component"
-#> [1] "Convergence reached at dif=2.44419512850139e-05, iter=7"
+#> Calculate the 1th Component
+#> Convergence reached at dif=3.8157412154411e-05, iter=4
+#> Calculate the 2th Component
+#> Convergence reached at dif=2.44419512850139e-05, iter=7
 ```
 
 #### Low-dimensional representation of subjects
@@ -532,10 +540,10 @@ temporal loading.
 # centralize data using matrix SVD after log 
 svd_tempted <- svd_centralize(datlist)
 res_tempted <- tempted(svd_tempted$datlist, r = 2, resolution = 101, smooth=1e-5)
-#> [1] "Calculate the 1th Component"
-#> [1] "Convergence reached at dif=3.531461408802e-05, iter=4"
-#> [1] "Calculate the 2th Component"
-#> [1] "Convergence reached at dif=4.37783267396658e-05, iter=7"
+#> Calculate the 1th Component
+#> Convergence reached at dif=3.531461408802e-05, iter=4
+#> Calculate the 2th Component
+#> Convergence reached at dif=4.37783267396658e-05, iter=7
 # alternatively, you can replace the two lines above by the two lines below.
 # the 2nd and 3rd component in the result below will be 
 # similar to the 1st and 2nd component in the result above.
@@ -699,10 +707,10 @@ mean_svd_train <- svd_centralize(datlist_train, r=1)
 
 res_tempted_train <- tempted(mean_svd_train$datlist,
 r=2, smooth=1e-5)
-#> [1] "Calculate the 1th Component"
-#> [1] "Convergence reached at dif=3.89952383939211e-05, iter=4"
-#> [1] "Calculate the 2th Component"
-#> [1] "Convergence reached at dif=4.45458808530784e-05, iter=7"
+#> Calculate the 1th Component
+#> Convergence reached at dif=3.89952383939211e-05, iter=4
+#> Calculate the 2th Component
+#> Convergence reached at dif=4.45458808530784e-05, iter=7
 ```
 
 #### Obtain subject loading for testing subject

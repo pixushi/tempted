@@ -130,7 +130,7 @@ This function wraps functions \code{\link{format_tempted}}, \code{\link{svd_cent
 and \code{\link{aggregate_feature}}.
 }
 \examples{
-#' # Take a subset of the samples so the example runs faster
+# Take a subset of the samples so the example runs faster
 
 # Here we are taking samples from the odd months
 sub_sample <- rownames(meta_table)[(meta_table$day_of_life\%/\%12)\%\%2==1]
@@ -140,28 +140,29 @@ meta_table_sub <- meta_table[sub_sample,]
 
 # for preprocessed data that do not need to be transformed
 
-# res.processed <- tempted_all(processed_table_sub,
-#                              meta_table_sub$day_of_life,
-#                             meta_table_sub$studyid,
-#                              threshold=1,
-#                              transform="none",
-#                              r=2,
-#                              smooth=1e-5,
-#                              do_ratio=FALSE)
+\donttest{
+res.processed <- tempted_all(processed_table_sub,
+                             meta_table_sub$day_of_life,
+                            meta_table_sub$studyid,
+                             threshold=1,
+                             transform="none",
+                             r=2,
+                             smooth=1e-5,
+                             do_ratio=FALSE)
 
 # for count data that will have pseudo added and clr transformed
 
-# res.count <- tempted_all(count_table_sub,
-#                          meta_table_sub$day_of_life,
-#                          meta_table_sub$studyid,
-#                          threshold=0.95,
-#                          transform="clr",
-#                          pseudo=0.5,
-#                          r=2,
-#                          smooth=1e-5,
-#                          pct_ratio=0.1,
-#                          pct_aggregate=1)
-
+res.count <- tempted_all(count_table_sub,
+                         meta_table_sub$day_of_life,
+                         meta_table_sub$studyid,
+                         threshold=0.95,
+                         transform="clr",
+                         pseudo=0.5,
+                         r=2,
+                         smooth=1e-5,
+                         pct_ratio=0.1,
+                         pct_aggregate=1)
+}
 # for proportional data that will have pseudo added and clr transformed
 
 res.proportion <- tempted_all(count_table_sub/rowSums(count_table_sub),
@@ -182,6 +183,10 @@ plot_time_loading(res.proportion, r=2)
 group <- unique(meta_table[,c("studyid", "delivery")])
 
 # plot the aggregated features
-
-# plot_metafeature(res.proportion$metafeature_aggregate, group, bws=30)
+\donttest{
+plot_metafeature(res.proportion$metafeature_aggregate, group, bws=30)
+}
+}
+\references{
+Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
 }

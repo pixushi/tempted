@@ -23,7 +23,11 @@ devtools::install_github("pixushi/tempted")
 
 To use our method, please cite the following paper:
 
-[Rungang Han, Pixu Shi, Anru R. Zhang, Guaranteed Functional Tensor Singular Value Decomposition](https://arxiv.org/abs/2108.04201)
+Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. [Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies. bioRxiv.](https://www.biorxiv.org/content/10.1101/2023.07.26.550749v1)
+
+The statistical theories behind this method can be found in this paper:
+
+Han R, Shi P, Zhang AR. [Guaranteed Functional Tensor Singular Value Decomposition. Journal of the American Statistical Association (2023): 1-13.](https://www.tandfonline.com/doi/full/10.1080/01621459.2022.2153689)
 
 ### Load packages for this vignette
 

@@ -76,17 +76,17 @@ mean_svd <- svd_centralize(datlist, r=1)
 res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
 
 # for preprocessed data that do not need to be transformed
+\donttest{
+datlist <- format_tempted(processed_table_sub,
+                          meta_table_sub$day_of_life,
+                          meta_table_sub$studyid,
+                          pseudo=NULL,
+                          transform="none")
 
-# datlist <- format_tempted(processed_table_sub,
-#                           meta_table_sub$day_of_life,
-#                           meta_table_sub$studyid,
-#                           pseudo=NULL,
-#                           transform="none")
+mean_svd <- svd_centralize(datlist, r=1)
 
-# mean_svd <- svd_centralize(datlist, r=1)
-
-# res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
-
+res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
+}
 # plot the temporal loading
 
 plot_time_loading(res_tempted, r=2)

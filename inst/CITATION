@@ -1,0 +1,13 @@
+bibentry(
+  key = "tempted_bioRxiv",
+  bibtype  = "Article",
+  title    = "Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies",
+  author   = c(person("Pixu","Shi"), person("Cameron","Martino"), person("Rungang","Han"), person("Stefan","Janssen"), person("Gregory","Buck"), person("Myrna","Serrano"), person("Kouros","Owzar"), person("Rob","Knight"), person("Liat","Shenhav"), person("Anru R","Zhang")),
+  journal = "bioRxiv",
+  year     = "2023",
+  doi      = "10.1101/550749"
+)
+
+
+
+

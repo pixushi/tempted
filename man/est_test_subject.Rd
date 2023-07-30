@@ -85,3 +85,6 @@ summary(glm_train)
 predict(glm_train, newdata=as.data.frame(sub_test), type="response")
 
 }
+\references{
+Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
+}
