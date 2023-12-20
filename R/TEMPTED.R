@@ -89,7 +89,7 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
   A <- matrix(0, n, r)
   B <- matrix(0, p, r)
   Phi <- matrix(0, resolution, r)
-  PCname <- paste('Component', 1:r)
+  PCname <- paste0('PC', 1:r)
   colnames(A) <- PCname
   colnames(B) <- PCname
   colnames(Phi) <- PCname
@@ -318,6 +318,7 @@ svd_centralize <- function(datlist, r = 1){
 #' \code{"comp"} for compositions.
 #' \code{"ast"} for arcsine squared transformation.
 #' \code{"clr"} for central log ratio transformation.
+#' \code{"lfb"} for log 2 fold change over baseline (first time point) transformation.
 #' \code{"logit"} for logit transformation.
 #' \code{"none"} for no transformation.
 #' Default \code{transform="clr"} is recommended for microbiome data.
@@ -344,7 +345,7 @@ format_tempted <- function(featuretable, timepoint, subjectID,
   }
   # keep taxon that has non-zeros in >1-threshold samples
   featuretable <- featuretable[,colMeans(featuretable==0)<=threshold]
-  if(transform=='logcomp'){
+  if(transform=='logcomp' | transform=="lfb"){
     featuretable <- featuretable+pseudo
     featuretable <- t(log(featuretable/rowSums(featuretable)))
   }else if(transform=='comp'){
@@ -357,6 +358,9 @@ format_tempted <- function(featuretable, timepoint, subjectID,
     featuretable <- featuretable+pseudo
     featuretable <- log(featuretable/rowSums(featuretable))
     featuretable <- t(featuretable-rowMeans(featuretable))
+  }else if(transform=="lfb"){
+    featuretable <- featuretable+pseudo
+    featuretable <- t(log(featuretable/rowSums(featuretable), 2))
   }else if(transform=='logit'){
     featuretable <- featuretable+pseudo
     featuretable <- t(featuretable/rowSums(featuretable))
@@ -382,6 +386,9 @@ format_tempted <- function(featuretable, timepoint, subjectID,
     datlist[[i]] <- featuretable[, subjectID==subID[i]]
     datlist[[i]] <- datlist[[i]][,order(datlist[[i]][1,])]
     datlist[[i]] <- datlist[[i]][,!duplicated(datlist[[i]][1,])]
+    if(transform=="lfb"){
+      datlist[[i]] <- datlist[[i]][,-1, drop=FALSE] - datlist[[i]][,1]
+    }
   }
   return(datlist)
 }
@@ -500,7 +507,7 @@ tdenoise <- function(res_tempted, mean_svd=NULL){
 #' rownames(metauni) <- metauni$studyid
 #' Atrain <- as.data.frame(res_tempted_train$A_hat)
 #' Atrain$delivery <- metauni[rownames(Atrain),"delivery"]=="Cesarean"
-#' glm_train <- glm(delivery ~ `Component 1`+`Component 2`,
+#' glm_train <- glm(delivery ~ PC1+PC2,
 #'                  data=Atrain, family=binomial(link="logit"))
 #' summary(glm_train)
 #'
@@ -550,7 +557,7 @@ est_test_subject <- function(datlist, res_tempted, mean_svd=NULL){
     }
   }
   rownames(A_test) <- names(mf.new)
-  colnames(A_test) <- paste('Component', 1:r)
+  colnames(A_test) <- paste0('PC', 1:r)
   return(A_test)
 }
 
@@ -623,7 +630,7 @@ aggregate_feature <- function(res_tempted, mean_svd=NULL, datlist,
   r <- ncol(B_data)
   if(!is.null(contrast)){
     contrast_data <- res_tempted$B_hat%*%contrast
-    colnames(contrast_data) <- paste('Contrast', 1:ncol(contrast))
+    colnames(contrast_data) <- paste0('Contrast', 1:ncol(contrast))
     B_data <- cbind(B_data, contrast_data)
   }
   toppct <- apply(abs(B_data), 2, function(x){x>=quantile(x, 1-pct)})
@@ -726,7 +733,7 @@ ratio_feature <- function(res_tempted, datlist,
   B_data <- as.data.frame(res_tempted$B_hat)
   if (!is.null(contrast)){
     contrast_data <- res_tempted$B_hat%*%contrast
-    colnames(contrast_data) <- paste('Contrast', 1:ncol(contrast))
+    colnames(contrast_data) <- paste0('Contrast', 1:ncol(contrast))
     B_data <- cbind(B_data, contrast_data)
   }
   if(!absolute){

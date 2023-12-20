@@ -33,6 +33,7 @@ This pseudo count is added for \code{transform=c("logcomp", "clr", "logit")}.}
 \code{"comp"} for compositions.
 \code{"ast"} for arcsine squared transformation.
 \code{"clr"} for central log ratio transformation.
+\code{"lfb"} for log 2 fold change over baseline (first time point) transformation.
 \code{"logit"} for logit transformation.
 \code{"none"} for no transformation.
 Default \code{transform="clr"} is recommended for microbiome data.

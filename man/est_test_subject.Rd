@@ -76,7 +76,7 @@ metauni <- unique(meta_table_sub[,c("studyid", "delivery")])
 rownames(metauni) <- metauni$studyid
 Atrain <- as.data.frame(res_tempted_train$A_hat)
 Atrain$delivery <- metauni[rownames(Atrain),"delivery"]=="Cesarean"
-glm_train <- glm(delivery ~ `Component 1`+`Component 2`,
+glm_train <- glm(delivery ~ PC1+PC2,
                  data=Atrain, family=binomial(link="logit"))
 summary(glm_train)
 
