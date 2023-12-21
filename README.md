@@ -188,7 +188,7 @@ Feature loadings are stored in variable `B_hat` of the `tempted_all()`
 output.
 
 ``` r
-p_feature <- ggplot(as.data.frame(res_count$B_hat), aes(x=`Component 1`, y=`Component 2`)) + 
+p_feature <- ggplot(as.data.frame(res_count$B_hat), aes(x=PC1, y=PC2)) + 
   geom_point() + 
   labs(x='Component 1', y='Component 2', title='feature loading')
 print(p_feature)
@@ -240,9 +240,9 @@ reshape_feat_obs <- reshape(tab_feat_obs,
 colnames(reshape_feat_obs) <- 
   sub(".*value[.]", "",  colnames(reshape_feat_obs))
 colnames(reshape_feat_obs)
-#> [1] "studyid"     "timepoint"   "delivery"    "Component 1" "Component 2"
+#> [1] "studyid"   "timepoint" "delivery"  "PC1"       "PC2"
 
-p_aggfeat_scatter <- ggplot(data=reshape_feat_obs, aes(x=`Component 1`, y=`Component 2`, 
+p_aggfeat_scatter <- ggplot(data=reshape_feat_obs, aes(x=PC1, y=PC2, 
                              color=timepoint, shape=delivery)) +
   geom_point() + scale_color_gradient(low = "#2b83ba", high = "#d7191c") + 
   labs(x='Component 1', y='Component 2', color='Day')
@@ -255,7 +255,7 @@ p_aggfeat_scatter
 
 # subsetting timepoint between 3 months and 1 year
 p_aggfeat_scatter2 <- ggplot(data=dplyr::filter(reshape_feat_obs, timepoint<365 & timepoint>30),
-                             aes(x=`Component 1`, y=`Component 2`, 
+                             aes(x=PC1, y=PC2, 
                              color=delivery)) +
   geom_point() + 
   labs(x='Component 1', y='Component 2', color='Delivery Mode')
@@ -317,7 +317,7 @@ print(p_time)
 #### Plot the feature loadings
 
 ``` r
-pfeature <- ggplot(as.data.frame(res_proportion$B_hat), aes(x=`Component 1`, y=`Component 2`)) + 
+pfeature <- ggplot(as.data.frame(res_proportion$B_hat), aes(x=PC1, y=PC2)) + 
   geom_point() + 
   labs(x='Component 1', y='Component 2', title='feature loading')
 print(pfeature)
@@ -363,9 +363,9 @@ reshape_feat_obs <- reshape(tab_feat_obs,
 colnames(reshape_feat_obs) <- 
   sub(".*value[.]", "",  colnames(reshape_feat_obs))
 colnames(reshape_feat_obs)
-#> [1] "studyid"     "timepoint"   "delivery"    "Component 1" "Component 2"
+#> [1] "studyid"   "timepoint" "delivery"  "PC1"       "PC2"
 
-p_aggfeat_scatter <- ggplot(data=reshape_feat_obs, aes(x=`Component 1`, y=`Component 2`, 
+p_aggfeat_scatter <- ggplot(data=reshape_feat_obs, aes(x=PC1, y=PC2, 
                              color=timepoint, shape=delivery)) +
   geom_point() + scale_color_gradient(low = "#2b83ba", high = "#d7191c") + 
   labs(x='Component 1', y='Component 2', color='Day')
@@ -378,7 +378,7 @@ p_aggfeat_scatter
 
 # subsetting timepoint between 3 months and 1 year
 p_aggfeat_scatter2 <- ggplot(data=dplyr::filter(reshape_feat_obs, timepoint<365 & timepoint>30),
-                             aes(x=`Component 1`, y=`Component 2`, 
+                             aes(x=PC1, y=PC2, 
                              color=delivery)) +
   geom_point() + 
   labs(x='Component 1', y='Component 2', color='Delivery Mode')
@@ -440,7 +440,7 @@ print(p_time)
 #### Plot the feature loadings
 
 ``` r
-pfeature <- ggplot(as.data.frame(res_processed$B_hat), aes(x=`Component 1`, y=`Component 2`)) + 
+pfeature <- ggplot(as.data.frame(res_processed$B_hat), aes(x=PC1, y=PC2)) + 
   geom_point() + 
   labs(x='Component 1', y='Component 2', title='feature loading')
 print(pfeature)
@@ -472,9 +472,9 @@ reshape_feat_obs <- reshape(tab_feat_obs,
 colnames(reshape_feat_obs) <- 
   sub(".*value[.]", "",  colnames(reshape_feat_obs))
 colnames(reshape_feat_obs)
-#> [1] "studyid"     "timepoint"   "delivery"    "Component 1" "Component 2"
+#> [1] "studyid"   "timepoint" "delivery"  "PC1"       "PC2"
 
-p_aggfeat_scatter <- ggplot(data=reshape_feat_obs, aes(x=`Component 1`, y=`Component 2`, 
+p_aggfeat_scatter <- ggplot(data=reshape_feat_obs, aes(x=PC1, y=PC2, 
                              color=timepoint, shape=delivery)) +
   geom_point() + scale_color_gradient(low = "#2b83ba", high = "#d7191c") + 
   labs(x='Component 1', y='Component 2', color='Day')
@@ -487,7 +487,7 @@ p_aggfeat_scatter
 
 # subsetting timepoint between 3 months and 1 year
 p_aggfeat_scatter2 <- ggplot(data=dplyr::filter(reshape_feat_obs, timepoint<365 & timepoint>30),
-                             aes(x=`Component 1`, y=`Component 2`, 
+                             aes(x=PC1, y=PC2, 
                              color=delivery)) +
   geom_point() + 
   labs(x='Component 1', y='Component 2', color='Delivery Mode')
@@ -733,8 +733,8 @@ datlist_test <- format_tempted(count_test,
 # estimate the subject loading of the testing subject
 sub_test <- est_test_subject(datlist_test, res_tempted_train, mean_svd_train)
 sub_test
-#>   Component 1 Component 2
-#> 2 -0.07967744   0.1688863
+#>           PC1       PC2
+#> 2 -0.07967744 0.1688863
 ```
 
 Here we use logistic regression to illustrate how the subject loadings
@@ -746,19 +746,19 @@ metauni <- unique(meta_table[,c("studyid", "delivery")])
 rownames(metauni) <- metauni$studyid
 Atrain <- as.data.frame(res_tempted_train$A_hat)
 Atrain$delivery <- metauni[rownames(Atrain),"delivery"]=="Cesarean"
-glm_train <- glm(delivery ~ `Component 1`+`Component 2`,
+glm_train <- glm(delivery ~ PC1+PC2,
                  data=Atrain, family=binomial(link="logit"))
 summary(glm_train)
 #> 
 #> Call:
-#> glm(formula = delivery ~ `Component 1` + `Component 2`, family = binomial(link = "logit"), 
+#> glm(formula = delivery ~ PC1 + PC2, family = binomial(link = "logit"), 
 #>     data = Atrain)
 #> 
 #> Coefficients:
-#>               Estimate Std. Error z value Pr(>|z|)   
-#> (Intercept)     -2.965      1.652  -1.795  0.07266 . 
-#> `Component 1`  -11.334      9.129  -1.242  0.21440   
-#> `Component 2`   16.865      5.529   3.050  0.00229 **
+#>             Estimate Std. Error z value Pr(>|z|)   
+#> (Intercept)   -2.965      1.652  -1.795  0.07266 . 
+#> PC1          -11.334      9.129  -1.242  0.21440   
+#> PC2           16.865      5.529   3.050  0.00229 **
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
