@@ -2,7 +2,7 @@ Package: tempted
 Type: Package
 Title: Temporal Tensor Decomposition, a Dimensionality Reduction Tool for Longitudinal Multivariate Data
 Version: 0.1.0
-Date: 2023-07-29
+Date: 2024-1-9
 Depends: R (>= 4.2.0), np (>= 0.60-17), ggplot2 (>= 3.4.0), methods (>= 4.2.1)
 Author: Pixu Shi
 Maintainer: Pixu Shi <pixu.shi@duke.edu>
