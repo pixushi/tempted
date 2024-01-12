@@ -4,11 +4,19 @@ TEMPTED Vignette
 ### Installation
 
 You can install the development version of tempted from
-[GitHub](https://github.com/) with:
+[GitHub](https://github.com/pixushi/tempted) with:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("pixushi/tempted")
+```
+
+You can also download the
+[tarball](https://github.com/pixushi/tempted/blob/master/tempted_0.1.0.tar.gz)
+to your folder of interest and install using
+
+``` r
+install.packages("folder_of_interest/tempted_0.1.0.tar.gz", repos = NULL, type="source")
 ```
 
 To use our method, please cite the following paper:
@@ -51,9 +59,9 @@ data objects:
 
 - `processed_table`: A data.frame with rows representing samples and
   matching with data.frame `meta_table` and columns representing
-  microbial features (i.e. OTUs). Entries do not need to be transformed,
-  and will be directly used by `tempted()`. This data.frame is used to
-  illustrate how `tempted()` can be used for general form of
+  microbial features (i.e. ASVs, genes). Entries do not need to be
+  transformed, and will be directly used by `tempted()`. This data.frame
+  is used to illustrate how `tempted()` can be used for general form of
   multivariate longitudinal data already preprocessed by user.
 
 ``` r
@@ -101,9 +109,10 @@ Here we explain the key parameters:
 - `transform`: The transformation applied to the data. “logcomp” for log
   of compositions. “comp” for compositions. “ast” for arcsine squared
   transformation. “clr” for central log ratio transformation. “logit”
-  for logit transformation. “none” for no transformation. Default
-  transform=“clr” is recommended for microbiome data. For data that are
-  already transformed, use transform=“none”.
+  for logit transformation. “lfb” for log fold over baseline. “none” for
+  no transformation. Default transform=“clr” is recommended for
+  microbiome data. For data that are already transformed, use
+  transform=“none”.
 - `r`: Number of components to decompose into, i.e. rank of the CP type
   decomposition. Default is set to 3.
 - `pct_ratio`: The percent of features to sum up for taking log ratios.
@@ -118,13 +127,13 @@ Here we explain the key parameters:
 - `pct_aggregate`: The percent of features to aggregate, features ranked
   by absolute value of the feature loading of each component. Default is
   1, which means 100% of features are aggregated. Setting
-  pct_aggregate=0.01 means top 1% of features is aggregated, where
+  `pct_aggregate = 0.01` means top 1% of features is aggregated, where
   features are ranked in absolute value of feature loading of each
   component. Input for aggregate_feature.
 - `pseudo`: A small number to add to all the counts before normalizing
   into proportions and log transformation. Default is 1/2 of the
   smallest non-zero value that is specific for each sample. This pseudo
-  count is added for `transform=c("logcomp", "clr", "logit")`.
+  count is added for `transform=c("logcomp", "clr", "logit", "lfb")`.
 
 **IMPORTANT NOTE:** In matrix singular value decomposition, the sign of
 subject scores and feature loadings can be flipped together. Similarly,
@@ -270,7 +279,8 @@ p_aggfeat_scatter2
 
 **IMPORTANT NOTE**: Different form the count data, `pseudo = NULL` is
 used so that 1/2 of the smallest non-zero value is added to each sample.
-This pseudo count is added for transform=c(“logcomp”, “clr”, “logit”).
+This pseudo count is added for
+`transform=c("logcomp", "clr", "logit", "lfb")`.
 
 ``` r
 proportion_table <- count_table/rowSums(count_table)
@@ -512,9 +522,9 @@ samples from the same time point, `format_tempted()` will only keep the
 first sample in the data input.
 
 **IMPORTANT NOTE**: For read count table as `feature_table`, set
-`pseudo=0.5`. For compositional data as `feature_table`, default setting
-is appropriate. For non-microbiome data, set `transform="none"` and
-`threshold=1`.
+`pseudo=0.5`. For compositional/proportion data as `feature_table`,
+default setting is appropriate. For non-microbiome data, set
+`transform="none"` and `threshold=1`.
 
 ``` r
 # format the data frames into a list that can be used by TEMPTED
