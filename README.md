@@ -3,7 +3,13 @@ TEMPTED Vignette
 
 ### Installation
 
-You can install the development version of tempted from
+You can directly install TEMPTED from CRAN by
+
+``` r
+install.packages("tempted")
+```
+
+You can install the development version of TEMPTED from
 [GitHub](https://github.com/pixushi/tempted) with:
 
 ``` r
@@ -11,7 +17,7 @@ You can install the development version of tempted from
 devtools::install_github("pixushi/tempted")
 ```
 
-You can also download the
+or download the
 [tarball](https://github.com/pixushi/tempted/blob/master/tempted_0.1.0.tar.gz)
 to your folder of interest and install using
 
