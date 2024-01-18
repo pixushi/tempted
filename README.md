@@ -1,6 +1,27 @@
 TEMPTED Vignette
 ================
 
+### Introduction
+
+This is a vignette for the R package `tempted`, which implements
+TEMPoral TEnsor Decomposition proposed by this paper:
+
+Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight
+R, Shenhav L, Zhang AR. [Time-Informed Dimensionality Reduction for
+Longitudinal Microbiome Studies.
+bioRxiv.](https://www.biorxiv.org/content/10.1101/2023.07.26.550749v1)
+
+The statistical theories behind TEMPTED can be found in this paper:
+
+Han R, Shi P, Zhang AR. [Guaranteed Functional Tensor Singular Value
+Decomposition. Journal of the American Statistical Association (2023):
+1-13.](https://www.tandfonline.com/doi/full/10.1080/01621459.2022.2153689)
+
+TEMPTED is also implemented in Python through the Python package
+`gemelli` and as a plugin of Qiime2. It can be installed through
+`pip install gemelli`. [Documentation for
+`gemelli`.](https://github.com/biocore/gemelli/tree/jointrpca)
+
 ### Installation
 
 You can directly install TEMPTED from CRAN by
@@ -24,19 +45,6 @@ to your folder of interest and install using
 ``` r
 install.packages("folder_of_interest/tempted_0.1.0.tar.gz", repos = NULL, type="source")
 ```
-
-To use our method, please cite the following paper:
-
-Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight
-R, Shenhav L, Zhang AR. [Time-Informed Dimensionality Reduction for
-Longitudinal Microbiome Studies.
-bioRxiv.](https://www.biorxiv.org/content/10.1101/2023.07.26.550749v1)
-
-The statistical theories behind this method can be found in this paper:
-
-Han R, Shi P, Zhang AR. [Guaranteed Functional Tensor Singular Value
-Decomposition. Journal of the American Statistical Association (2023):
-1-13.](https://www.tandfonline.com/doi/full/10.1080/01621459.2022.2153689)
 
 ### Load packages for this vignette
 
