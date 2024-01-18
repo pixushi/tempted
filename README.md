@@ -1,10 +1,15 @@
 TEMPTED Vignette
 ================
 
-### Introduction
+## Introduction of TEMPTED
 
-This is a vignette for the R package `tempted`, which implements
-TEMPoral TEnsor Decomposition proposed by this paper:
+This is a vignette for the R package `tempted`, which implements the
+statistical method TEMPoral TEnsor Decomposition (TEMPTED). The goal of
+TEMPTED is to perform dimensionality reduction for multivariate
+longitudinal data, with a special attention to longitudinal mirobiome
+studies. This document is split into four sections:
+
+You can cite this paper for using TEMPTED:
 
 Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight
 R, Shenhav L, Zhang AR. [Time-Informed Dimensionality Reduction for
@@ -22,7 +27,7 @@ TEMPTED is also implemented in Python through the Python package
 `pip install gemelli`. [Documentation for
 `gemelli`.](https://github.com/biocore/gemelli/tree/jointrpca)
 
-### Installation
+## Installation
 
 You can directly install TEMPTED from CRAN by
 
@@ -46,14 +51,14 @@ to your folder of interest and install using
 install.packages("folder_of_interest/tempted_0.1.0.tar.gz", repos = NULL, type="source")
 ```
 
-### Load packages for this vignette
+## Load packages for this vignette
 
 ``` r
 library(gridExtra)
 library(tempted)
 ```
 
-### Read the example data
+## Read the example data
 
 The example dataset is originally from [Bokulich, Nicholas A., et
 al. (2016)](https://pubmed.ncbi.nlm.nih.gov/27306664/). We provide three
@@ -88,11 +93,9 @@ table(rownames(count_table)==rownames(meta_table))
 metauni <- unique(meta_table[,c('studyid', 'delivery')])
 ```
 
-### Introduction of TEMPTED
+## Running TEMPTED for different formats of data
 
-The goal of tempted is to perform dimensionality reduction for
-multivariate longitudinal data, with a special attention to longitudinal
-mirobiome studies. This document is split into four sections:
+We provide example codes for the following scenarios:
 
 1.  Run TEMPTED for Microbiome Count Data (Straightforward Way)
 2.  Run TEMPTED for Microbiome Compositional Data (Straightforward Way)
@@ -101,9 +104,9 @@ mirobiome studies. This document is split into four sections:
 4.  Run TEMPTED in Customized Way
 5.  Transferring TEMPTED result from training to testing data
 
-### Run TEMPTED for Microbiome Count Data (Straightforward Way)
+## Run TEMPTED for Microbiome Count Data (Straightforward Way)
 
-#### Run TEMPTED
+### Run TEMPTED
 
 A complete description of all parameters can be found in the pdf manual.
 Here we explain the key parameters:
@@ -171,7 +174,7 @@ res_count <- tempted_all(count_table,
 #> Convergence reached at dif=4.745809269163e-05, iter=7
 ```
 
-#### Low-dimensional representation of subjects
+### Low-dimensional representation of subjects
 
 Subject loadings are stored in variable `A_hat` of the `tempted_all()`
 output.
@@ -189,7 +192,7 @@ print(p_subj)
 
 <img src="man/figures/README-plot_sub_loading-1.png" width="100%" />
 
-#### Plot the temporal loadings
+### Plot the temporal loadings
 
 Temporal loadings are stored in variable `Phi_hat` of the
 `tempted_all()` output. We provide an R function `plot_time_loading()`
@@ -205,7 +208,7 @@ print(p_time)
 
 <img src="man/figures/README-plot_time_loading-1.png" width="100%" />
 
-#### Plot the feature loadings
+### Plot the feature loadings
 
 Feature loadings are stored in variable `B_hat` of the `tempted_all()`
 output.
@@ -219,7 +222,7 @@ print(p_feature)
 
 <img src="man/figures/README-plot_feature_loading-1.png" width="100%" />
 
-#### Plot log ratio of top features
+### Plot log ratio of top features
 
 The log ratios are stored in variable `metafeature_ratio` of the
 `tempted_all()` output.
@@ -232,7 +235,7 @@ plot_metafeature(res_count$metafeature_ratio, group) + xlab("Days of Life")
 
 <img src="man/figures/README-plot_log_ratio-1.png" width="100%" />
 
-#### Plot subject trajectories
+### Plot subject trajectories
 
 The subject trajectores are stored in `metafeature_aggregate` of the
 `tempted_all()` output.
@@ -245,7 +248,7 @@ plot_metafeature(res_count$metafeature_aggregate, group) + xlab("Days of Life")
 
 <img src="man/figures/README-plot_sub_traj-1.png" width="100%" />
 
-#### Low-dimensional representation of samples
+### Low-dimensional representation of samples
 
 This is an alternative way to visualize the subject trajectories.
 Instead of plotting against the time points, you can visualize the
@@ -287,9 +290,9 @@ p_aggfeat_scatter2
 
 <img src="man/figures/README-plot_aggfeat_scatter-2.png" width="100%" />
 
-### Run TEMPTED for Microbiome Compositional Data (Straightforward Way)
+## Run TEMPTED for Microbiome Compositional Data (Straightforward Way)
 
-#### Run TEMPTED
+### Run TEMPTED
 
 **IMPORTANT NOTE**: Different form the count data, `pseudo = NULL` is
 used so that 1/2 of the smallest non-zero value is added to each sample.
@@ -312,7 +315,7 @@ res_proportion <- tempted_all(proportion_table,
 #> Convergence reached at dif=4.7458092689688e-05, iter=7
 ```
 
-#### Low-dimensional representation of subjects
+### Low-dimensional representation of subjects
 
 ``` r
 A_data <- metauni
@@ -327,7 +330,7 @@ print(p_subj)
 
 <img src="man/figures/README-plot_sub_loading2-1.png" width="100%" />
 
-#### Plot the temporal loadings
+### Plot the temporal loadings
 
 ``` r
 p_time <- plot_time_loading(res_proportion, r=2) + 
@@ -338,7 +341,7 @@ print(p_time)
 
 <img src="man/figures/README-plot_time_loading2-1.png" width="100%" />
 
-#### Plot the feature loadings
+### Plot the feature loadings
 
 ``` r
 pfeature <- ggplot(as.data.frame(res_proportion$B_hat), aes(x=PC1, y=PC2)) + 
@@ -349,7 +352,7 @@ print(pfeature)
 
 <img src="man/figures/README-plot_feature_loading2-1.png" width="100%" />
 
-#### Plot log ratio of top features
+### Plot log ratio of top features
 
 ``` r
 group <- unique(meta_table[,c("studyid", "delivery")])
@@ -359,7 +362,7 @@ plot_metafeature(res_proportion$metafeature_ratio, group) + xlab("Days of Life")
 
 <img src="man/figures/README-plot_log_ratio2-1.png" width="100%" />
 
-#### Plot subject trajectories
+### Plot subject trajectories
 
 ``` r
 group <- unique(meta_table[,c("studyid", "delivery")])
@@ -369,7 +372,7 @@ plot_metafeature(res_proportion$metafeature_aggregate, group) + xlab("Days of Li
 
 <img src="man/figures/README-plot_sub_traj2-1.png" width="100%" />
 
-#### Low-dimensional representation of samples
+### Low-dimensional representation of samples
 
 This is an alternative way to visualize the subject trajectories.
 Instead of plotting against the time points, you can visualize the
@@ -411,9 +414,9 @@ p_aggfeat_scatter2
 
 <img src="man/figures/README-plot_aggfeat_scatter2-2.png" width="100%" />
 
-### Run TEMPTED for General Form of Multivariate Longitudinal Data (Straightforward Way)
+## Run TEMPTED for General Form of Multivariate Longitudinal Data (Straightforward Way)
 
-#### Run TEMPTED
+### Run TEMPTED
 
 **IMPORTANT NOTE**: Different form the microbiome data, no features are
 going to be filtered out by setting `threshold=1`, no transformation is
@@ -435,7 +438,7 @@ res_processed <- tempted_all(processed_table,
 #> Convergence reached at dif=2.44419512850139e-05, iter=7
 ```
 
-#### Low-dimensional representation of subjects
+### Low-dimensional representation of subjects
 
 ``` r
 A_data <- metauni
@@ -450,7 +453,7 @@ print(p_subj)
 
 <img src="man/figures/README-plot_sub_loading3-1.png" width="100%" />
 
-#### Plot the temporal loadings
+### Plot the temporal loadings
 
 ``` r
 p_time <- plot_time_loading(res_processed, r=2) + 
@@ -461,7 +464,7 @@ print(p_time)
 
 <img src="man/figures/README-plot_time_loading3-1.png" width="100%" />
 
-#### Plot the feature loadings
+### Plot the feature loadings
 
 ``` r
 pfeature <- ggplot(as.data.frame(res_processed$B_hat), aes(x=PC1, y=PC2)) + 
@@ -472,7 +475,7 @@ print(pfeature)
 
 <img src="man/figures/README-plot_feature_loading3-1.png" width="100%" />
 
-#### Plot subject trajectories
+### Plot subject trajectories
 
 ``` r
 group <- unique(meta_table[,c("studyid", "delivery")])
@@ -482,7 +485,7 @@ plot_metafeature(res_processed$metafeature_aggregate, group) + xlab("Days of Lif
 
 <img src="man/figures/README-plot_sub_traj3-1.png" width="100%" />
 
-#### Low-dimensional representation of samples
+### Low-dimensional representation of samples
 
 ``` r
 tab_feat_obs <- res_processed$metafeature_aggregate
@@ -520,12 +523,12 @@ p_aggfeat_scatter2
 
 <img src="man/figures/README-plot_aggfeat_scatter3-2.png" width="100%" />
 
-### Run TEMPTED in Customized Way
+## Run TEMPTED in Customized Way
 
 This is a breakdown of what `tempted_all()` does in each function it
 wraps into.
 
-#### Format and Transform Data
+### Format and Transform Data
 
 The function `format_tempted()` transforms the sample-by-feature table
 and the corresponding time points and subject IDs into the list format
@@ -549,7 +552,7 @@ print(dim(datlist[[1]]))
 #> [1] 796  29
 ```
 
-#### Run TEMPTED
+### Run TEMPTED
 
 The function `svd_centralize()` uses matrix SVD to fit a constant
 trajectory (straight flat line) for all subject-feature pairs, and
@@ -579,7 +582,7 @@ The output of `tempted()` can be used in the same way as the output of
 `tempted_all()` to plot temporal loadings, subject loadings, and feature
 loadings as in the previous sections of this document.
 
-#### Log ratio of top/bottom feature
+### Log ratio of top/bottom feature
 
 The feature loadings can be used to rank features. The abundance ratio
 of top ranking features over bottom ranking features corresponding to
@@ -628,7 +631,7 @@ grid.arrange(p_feat_obs, p_feat_obs_summary, nrow=2)
 
 <img src="man/figures/README-plot_ratio_traj_breakdown-1.png" width="100%" />
 
-#### Subject trajectories
+### Subject trajectories
 
 The feature loadings can be used as weights to aggregate features. The
 aggregation can be done using the low-rank denoised data tensor, or the
@@ -665,7 +668,7 @@ grid.arrange(p_feat_obs, p_feat_obs_summary, nrow=2)
 
 <img src="man/figures/README-plot_sub_traj_breakdown-1.png" width="100%" />
 
-#### Plot trajectory of top features
+### Plot trajectory of top features
 
 The feature loadings can also be used to investigate the driving
 features behind each component. Here we focus on the 2nd component and
@@ -700,9 +703,9 @@ grid.arrange(p_topfeat, p_topfeat_summary, nrow=2)
 
 <img src="man/figures/README-plot_top_feature-1.png" width="100%" />
 
-### Transferring TEMPTED result from training to testing data
+## Transferring TEMPTED result from training to testing data
 
-#### Split the example data into training and testing
+### Split the example data into training and testing
 
 Here we take thes subject with `studyid="2"` as the testing subject, and
 the remaining subjects as training subjects.
@@ -717,7 +720,7 @@ count_test <- count_table[id_test,]
 meta_test <- meta_table[id_test,]
 ```
 
-#### Run tempted on training subjects
+### Run TEMPTED on training subjects
 
 ``` r
 datlist_train <- format_tempted(count_train,
@@ -737,7 +740,7 @@ r=2, smooth=1e-5)
 #> Convergence reached at dif=4.45458808530784e-05, iter=7
 ```
 
-#### Obtain subject loading for testing subject
+### Obtain subject loading for testing subject
 
 **IMPORTANT NOTE**: the testing samples should contain the features in
 the training data.

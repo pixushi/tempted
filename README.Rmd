@@ -12,9 +12,12 @@ knitr::opts_chunk$set(
 )
 ```
 
-### Introduction
+## Introduction of TEMPTED
 
-This is a vignette for the R package `tempted`, which implements TEMPoral TEnsor Decomposition proposed by this paper:
+
+This is a vignette for the R package `tempted`, which implements the statistical method TEMPoral TEnsor Decomposition (TEMPTED). The goal of TEMPTED is to perform dimensionality reduction for multivariate longitudinal data, with a special attention to longitudinal mirobiome studies. This document is split into four sections:
+
+You can cite this paper for using TEMPTED:
 
 Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. [Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies. bioRxiv.](https://www.biorxiv.org/content/10.1101/2023.07.26.550749v1)
 
@@ -25,7 +28,9 @@ Han R, Shi P, Zhang AR. [Guaranteed Functional Tensor Singular Value Decompositi
 TEMPTED is also implemented in Python through the Python package `gemelli` and as a plugin of Qiime2. It can be installed through `pip install gemelli`. [Documentation for `gemelli`.](https://github.com/biocore/gemelli/tree/jointrpca)
 
 
-### Installation
+
+
+## Installation
 
 You can directly install TEMPTED from CRAN by 
 
@@ -47,14 +52,14 @@ or download the [tarball](https://github.com/pixushi/tempted/blob/master/tempted
 install.packages("folder_of_interest/tempted_0.1.0.tar.gz", repos = NULL, type="source")
 ```
 
-### Load packages for this vignette
+## Load packages for this vignette
 
 ```{r load_library, message=FALSE, warning=FALSE}
 library(gridExtra)
 library(tempted)
 ```
 
-### Read the example data
+## Read the example data
 
 The example dataset is originally from [Bokulich, Nicholas A., et al. (2016)](https://pubmed.ncbi.nlm.nih.gov/27306664/). We provide three data objects:
 
@@ -75,9 +80,9 @@ table(rownames(count_table)==rownames(meta_table))
 metauni <- unique(meta_table[,c('studyid', 'delivery')])
 ```
 
-### Introduction of TEMPTED
+## Running TEMPTED for different formats of data
 
-The goal of tempted is to perform dimensionality reduction for multivariate longitudinal data, with a special attention to longitudinal mirobiome studies. This document is split into four sections:
+We provide example codes for the following scenarios:
 
 1.  Run TEMPTED for Microbiome Count Data (Straightforward Way)
 2.  Run TEMPTED for Microbiome Compositional Data (Straightforward Way)
@@ -85,9 +90,9 @@ The goal of tempted is to perform dimensionality reduction for multivariate long
 4.  Run TEMPTED in Customized Way
 5.  Transferring TEMPTED result from training to testing data
 
-### Run TEMPTED for Microbiome Count Data (Straightforward Way)
+## Run TEMPTED for Microbiome Count Data (Straightforward Way)
 
-#### Run TEMPTED
+### Run TEMPTED
 
 A complete description of all parameters can be found in the pdf manual. Here we explain the key parameters:
 
@@ -118,7 +123,7 @@ res_count <- tempted_all(count_table,
                          pct_aggregate=1)
 ```
 
-#### Low-dimensional representation of subjects
+### Low-dimensional representation of subjects
 
 Subject loadings are stored in variable `A_hat` of the `tempted_all()` output.
 
@@ -133,7 +138,7 @@ p_subj <- ggplot(data=A_data, aes(x=A_data[,1], y=A_data[,2], color=delivery)) +
 print(p_subj)
 ```
 
-#### Plot the temporal loadings
+### Plot the temporal loadings
 
 Temporal loadings are stored in variable `Phi_hat` of the `tempted_all()` output. We provide an R function `plot_time_loading()` to plot these curves. Option `r` lets you decide how many components to plot.
 
@@ -144,7 +149,7 @@ p_time <- plot_time_loading(res_count, r=2) +
 print(p_time)
 ```
 
-#### Plot the feature loadings
+### Plot the feature loadings
 
 Feature loadings are stored in variable `B_hat` of the `tempted_all()` output.
 
@@ -155,7 +160,7 @@ p_feature <- ggplot(as.data.frame(res_count$B_hat), aes(x=PC1, y=PC2)) +
 print(p_feature)
 ```
 
-#### Plot log ratio of top features
+### Plot log ratio of top features
 
 The log ratios are stored in variable `metafeature_ratio` of the `tempted_all()` output.
 
@@ -164,7 +169,7 @@ group <- unique(meta_table[,c("studyid", "delivery")])
 plot_metafeature(res_count$metafeature_ratio, group) + xlab("Days of Life")
 ```
 
-#### Plot subject trajectories
+### Plot subject trajectories
 
 The subject trajectores are stored in `metafeature_aggregate` of the `tempted_all()` output.
 
@@ -173,7 +178,7 @@ group <- unique(meta_table[,c("studyid", "delivery")])
 plot_metafeature(res_count$metafeature_aggregate, group) + xlab("Days of Life")
 ```
 
-#### Low-dimensional representation of samples
+### Low-dimensional representation of samples
 
 This is an alternative way to visualize the subject trajectories. Instead of plotting against the time points, you can visualize the samples in low-dimensional spaces.
 
@@ -205,9 +210,9 @@ p_aggfeat_scatter2 <- ggplot(data=dplyr::filter(reshape_feat_obs, timepoint<365 
 p_aggfeat_scatter2
 ```
 
-### Run TEMPTED for Microbiome Compositional Data (Straightforward Way)
+## Run TEMPTED for Microbiome Compositional Data (Straightforward Way)
 
-#### Run TEMPTED
+### Run TEMPTED
 
 **IMPORTANT NOTE**: Different form the count data, `pseudo = NULL` is used so that 1/2 of the smallest non-zero value is added to each sample. This pseudo count is added for `transform=c("logcomp", "clr", "logit", "lfb")`.
 
@@ -223,7 +228,7 @@ res_proportion <- tempted_all(proportion_table,
                               smooth=1e-5)
 ```
 
-#### Low-dimensional representation of subjects
+### Low-dimensional representation of subjects
 
 ```{r plot_sub_loading2, message=FALSE, warning=FALSE}
 A_data <- metauni
@@ -236,7 +241,7 @@ p_subj <- ggplot(data=A_data, aes(x=A_data[,1], y=A_data[,2], color=delivery)) +
 print(p_subj)
 ```
 
-#### Plot the temporal loadings
+### Plot the temporal loadings
 
 ```{r plot_time_loading2, message=FALSE, warning=FALSE}
 p_time <- plot_time_loading(res_proportion, r=2) + 
@@ -245,7 +250,7 @@ p_time <- plot_time_loading(res_proportion, r=2) +
 print(p_time)
 ```
 
-#### Plot the feature loadings
+### Plot the feature loadings
 
 ```{r plot_feature_loading2, message=FALSE, warning=FALSE}
 pfeature <- ggplot(as.data.frame(res_proportion$B_hat), aes(x=PC1, y=PC2)) + 
@@ -254,21 +259,21 @@ pfeature <- ggplot(as.data.frame(res_proportion$B_hat), aes(x=PC1, y=PC2)) +
 print(pfeature)
 ```
 
-#### Plot log ratio of top features
+### Plot log ratio of top features
 
 ```{r plot_log_ratio2, message=FALSE, warning=FALSE}
 group <- unique(meta_table[,c("studyid", "delivery")])
 plot_metafeature(res_proportion$metafeature_ratio, group) + xlab("Days of Life")
 ```
 
-#### Plot subject trajectories
+### Plot subject trajectories
 
 ```{r plot_sub_traj2, message=FALSE, warning=FALSE}
 group <- unique(meta_table[,c("studyid", "delivery")])
 plot_metafeature(res_proportion$metafeature_aggregate, group) + xlab("Days of Life")
 ```
 
-#### Low-dimensional representation of samples
+### Low-dimensional representation of samples
 
 This is an alternative way to visualize the subject trajectories. Instead of plotting against the time points, you can visualize the samples in low-dimensional spaces.
 
@@ -300,9 +305,9 @@ p_aggfeat_scatter2 <- ggplot(data=dplyr::filter(reshape_feat_obs, timepoint<365 
 p_aggfeat_scatter2
 ```
 
-### Run TEMPTED for General Form of Multivariate Longitudinal Data (Straightforward Way)
+## Run TEMPTED for General Form of Multivariate Longitudinal Data (Straightforward Way)
 
-#### Run TEMPTED
+### Run TEMPTED
 
 **IMPORTANT NOTE**: Different form the microbiome data, no features are going to be filtered out by setting `threshold=1`, no transformation is performed by setting `transform="none"`, and no log ratio is calculated by setting `do_ratio=FALSE`.
 
@@ -317,7 +322,7 @@ res_processed <- tempted_all(processed_table,
                              do_ratio=FALSE)
 ```
 
-#### Low-dimensional representation of subjects
+### Low-dimensional representation of subjects
 
 ```{r plot_sub_loading3, message=FALSE, warning=FALSE}
 A_data <- metauni
@@ -330,7 +335,7 @@ p_subj <- ggplot(data=A_data, aes(x=A_data[,1], y=A_data[,2], color=delivery)) +
 print(p_subj)
 ```
 
-#### Plot the temporal loadings
+### Plot the temporal loadings
 
 ```{r plot_time_loading3, message=FALSE, warning=FALSE}
 p_time <- plot_time_loading(res_processed, r=2) + 
@@ -339,7 +344,7 @@ p_time <- plot_time_loading(res_processed, r=2) +
 print(p_time)
 ```
 
-#### Plot the feature loadings
+### Plot the feature loadings
 
 ```{r plot_feature_loading3, message=FALSE, warning=FALSE}
 pfeature <- ggplot(as.data.frame(res_processed$B_hat), aes(x=PC1, y=PC2)) + 
@@ -348,14 +353,14 @@ pfeature <- ggplot(as.data.frame(res_processed$B_hat), aes(x=PC1, y=PC2)) +
 print(pfeature)
 ```
 
-#### Plot subject trajectories
+### Plot subject trajectories
 
 ```{r plot_sub_traj3, message=FALSE, warning=FALSE}
 group <- unique(meta_table[,c("studyid", "delivery")])
 plot_metafeature(res_processed$metafeature_aggregate, group) + xlab("Days of Life")
 ```
 
-#### Low-dimensional representation of samples
+### Low-dimensional representation of samples
 
 ```{r plot_aggfeat_scatter3, message=FALSE, warning=FALSE}
 tab_feat_obs <- res_processed$metafeature_aggregate
@@ -385,11 +390,11 @@ p_aggfeat_scatter2 <- ggplot(data=dplyr::filter(reshape_feat_obs, timepoint<365 
 p_aggfeat_scatter2
 ```
 
-### Run TEMPTED in Customized Way
+## Run TEMPTED in Customized Way
 
 This is a breakdown of what `tempted_all()` does in each function it wraps into.
 
-#### Format and Transform Data
+### Format and Transform Data
 
 The function `format_tempted()` transforms the sample-by-feature table and the corresponding time points and subject IDs into the list format that is accepted by `tempted()`. It filters features with a lot of zeros, perform transformation of the features, and add pseudo count for transformations that cannot handle zeros. When a subject has multiple samples from the same time point, `format_tempted()` will only keep the first sample in the data input.
 
@@ -402,7 +407,7 @@ length(datlist)
 print(dim(datlist[[1]]))
 ```
 
-#### Run TEMPTED
+### Run TEMPTED
 
 The function `svd_centralize()` uses matrix SVD to fit a constant trajectory (straight flat line) for all subject-feature pairs, and remove it from the data. This step is optional. If it is not used, we recommend the user to add 1 to the rank parameter `r` in `tempted()` and in general the first component estimated by `tempted()` will reflect this constant trajectory. In this example, we used `r=2`. Option `smooth` allows the user to choose the smoothness of the estimated temporal loading.
 
@@ -419,7 +424,7 @@ res_tempted <- tempted(svd_tempted$datlist, r = 2, resolution = 101, smooth=1e-5
 
 The output of `tempted()` can be used in the same way as the output of `tempted_all()` to plot temporal loadings, subject loadings, and feature loadings as in the previous sections of this document.
 
-#### Log ratio of top/bottom feature
+### Log ratio of top/bottom feature
 
 The feature loadings can be used to rank features. The abundance ratio of top ranking features over bottom ranking features corresponding to each component can be a biologically meaningful marker. We provide an R function `ratio_feature()` to calculate such the abundance ratio. The abundance ratio is stored in the output variable `metafeature_ratio` in the output. An TRUE/FALSE vector indicating whether the feature is in the top ranking or bottom ranking is stored in variable `toppct` and `bottompct`, respectively. Below are trajectories of the aggregated features using observed data. Users can choose the percentage for the cutoff of top/bottom ranking features through option `pct` (by default `pct=0.05`). By default `absolute=TRUE` means the features are chosen if they rank in the top `pct` percentile in the absolute value of the feature loadings, and abundance ratio is taken between the features with positive loadings over negative loadings. When `absolute=FALSE`, the features are chose if they rank in the top `pct` percentile and has positive loading or rank in the bottom `pct` percentile and has negative loading. We also provide an option `contrast` allowing users to rank features using linear combinations of the feature loadings from different components.
 
@@ -444,7 +449,7 @@ p_feat_obs_summary <- plot_metafeature(ratio_feat$metafeature_ratio, group, bws=
 grid.arrange(p_feat_obs, p_feat_obs_summary, nrow=2)
 ```
 
-#### Subject trajectories
+### Subject trajectories
 
 The feature loadings can be used as weights to aggregate features. The aggregation can be done using the low-rank denoised data tensor, or the original observed data tensor. We provide an R function `aggregate_feature()` to perform the aggregation. The aggregated features using low-rank denoised tensor is stored in variable `metafeature_aggregate_est` and the aggregated features using observed data is stored in variable `metafeature_aggregate`. Below are trajectories of the aggregated features using observed data. Only the features with absolute loading in the top pct percentile (by default set to 100%, i.e. all features, through option `pct=1`) are used for the aggregation. We also provide an option `contrast` allowing users to aggregate features using linear combinations of the feature loadings from different components.
 
@@ -466,7 +471,7 @@ p_feat_obs_summary <- plot_metafeature(agg_feat$metafeature_aggregate, group, bw
 grid.arrange(p_feat_obs, p_feat_obs_summary, nrow=2)
 ```
 
-#### Plot trajectory of top features
+### Plot trajectory of top features
 
 The feature loadings can also be used to investigate the driving features behind each component. Here we focus on the 2nd component and provide the trajectories of the top features using the estimated and observed data tensor, respectively.
 
@@ -497,9 +502,9 @@ grid.arrange(p_topfeat, p_topfeat_summary, nrow=2)
 ```
 
 
-### Transferring TEMPTED result from training to testing data
+## Transferring TEMPTED result from training to testing data
 
-#### Split the example data into training and testing
+### Split the example data into training and testing
 
 Here we take thes subject with `studyid="2"` as the testing subject, and the remaining subjects as training subjects.
 
@@ -514,7 +519,7 @@ meta_test <- meta_table[id_test,]
 ```
 
 
-#### Run tempted on training subjects
+### Run TEMPTED on training subjects
 
 ```{r tempted_train}
 datlist_train <- format_tempted(count_train,
@@ -530,7 +535,7 @@ res_tempted_train <- tempted(mean_svd_train$datlist,
 r=2, smooth=1e-5)
 ```
 
-#### Obtain subject loading for testing subject
+### Obtain subject loading for testing subject
 
 **IMPORTANT NOTE**: the testing samples should contain the features in the training data.
 
