@@ -7,7 +7,7 @@ This is a vignette for the R package `tempted`, which implements the
 statistical method TEMPoral TEnsor Decomposition (TEMPTED). The goal of
 TEMPTED is to perform dimensionality reduction for multivariate
 longitudinal data, with a special attention to longitudinal mirobiome
-studies. This document is split into four sections:
+studies.
 
 You can cite this paper for using TEMPTED:
 
