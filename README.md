@@ -9,7 +9,14 @@ TEMPTED is to perform dimensionality reduction for multivariate
 longitudinal data, with a special attention to longitudinal mirobiome
 studies.
 
-You can cite this paper for using TEMPTED:
+**Package dependencies:** R (\>= 4.2.0), np (\>= 0.60-17), ggplot2 (\>=
+3.4.0), methods (\>= 4.2.1).
+
+**Run time** for all the example codes in this demo was within one
+minute on a MacBook Pro with 2.3 GHz Intel Core i7 processor. You may
+expect longer run time if you have more subjects or more features.
+
+You can **cite this paper** for using TEMPTED:
 
 Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight
 R, Shenhav L, Zhang AR. [Time-Informed Dimensionality Reduction for
@@ -22,7 +29,7 @@ Han R, Shi P, Zhang AR. [Guaranteed Functional Tensor Singular Value
 Decomposition. Journal of the American Statistical Association (2023):
 1-13.](https://www.tandfonline.com/doi/full/10.1080/01621459.2022.2153689)
 
-TEMPTED is also implemented in Python through the Python package
+TEMPTED is also **implemented in Python** through the Python package
 `gemelli` and as a plugin of Qiime2. It can be installed through
 `pip install gemelli`. [Documentation for
 `gemelli`.](https://github.com/biocore/gemelli/tree/jointrpca)
@@ -34,6 +41,9 @@ You can directly install TEMPTED from CRAN by
 ``` r
 install.packages("tempted")
 ```
+
+**Typical installation time** is within a few minutes on a typical
+desktop.
 
 You can install the development version of TEMPTED from
 [GitHub](https://github.com/pixushi/tempted) with:
