@@ -3,6 +3,8 @@ TEMPTED Vignette
 
 ## Introduction of TEMPTED
 
+<img src="Fig_tempted.png" style="width:100.0%" />
+
 This is a vignette for the R package `tempted`, which implements the
 statistical method TEMPoral TEnsor Decomposition (TEMPTED). The goal of
 TEMPTED is to perform dimensionality reduction for multivariate
