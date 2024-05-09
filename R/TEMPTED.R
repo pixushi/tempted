@@ -1092,6 +1092,97 @@ plot_time_loading <- function(res, r=NULL, ...){
 }
 
 
+
+#' @title Reconstruct tensor from low dimensional components
+#' @description This function reconstructs the temporal tensor from the low dimensional components extracted by \code{\link{tempted}} and \code{\link{svd_centralize}}. 
+#' @param res_tempted Output of function \code{\link{tempted}}.
+#' @param res_svd Output of function \code{\link{svd_centralize}} if mean subtraction \code{\link{svd_centralize}} was performed before \code{\link{tempted}}. If mean subtraction was not performed, specify \code{res_svd=NULL} and provide \code{datlist}.
+#' @param datlist Output of function \code{\link{format_tempted}} if mean subtraction was not performed and \code{res_svd=NULL}, or left as \code{NULL} if mean subtraction was performed and \code{res_svd} is provided.
+#' @param r_reconstruct The number of components from TEMPTED to be used for the tensor reconstruction.
+#' @return datlist_est The reconstructed tensor stored in a datlist format same as the output of \code{\link{format_tempted}}.
+#' @examples
+#' # Take a subset of the samples so the example runs faster
+#'
+#' # Here we are taking samples from the odd months
+#' sub_sample <- rownames(meta_table)[(meta_table$day_of_life%/%12)%%2==1]
+#' count_table_sub <- count_table[sub_sample,]
+#' processed_table_sub <- processed_table[sub_sample,]
+#' meta_table_sub <- meta_table[sub_sample,]
+#' # reconstruct with mean subtraction
+#' datlist <- format_tempted(processed_table_sub,
+#'                           meta_table_sub$day_of_life,
+#'                           meta_table_sub$studyid,
+#'                           pseudo=NULL,
+#'                           transform="none")
+#'
+#' mean_svd <- svd_centralize(datlist, r=1)
+#'
+#' res_tempted <- tempted(mean_svd$datlist, r=2, smooth=1e-5)
+#' 
+#' datlist_est <- reconstruct(res_tempted, mean_svd, datlist=NULL, r_reconstruct=2)
+#' vec_est <- unlist(sapply(datlist_est, function(x){x[-1,]}))
+#' vec_obs <- unlist(sapply(datlist, function(x){x[-1,]}))
+#' R2 <- 1-sum((vec_est-vec_obs)^2)/sum(vec_obs^2)
+#' R2
+#'
+#' # reconstruct without mean subtraction
+#' datlist <- format_tempted(processed_table_sub,
+#'                           meta_table_sub$day_of_life,
+#'                           meta_table_sub$studyid,
+#'                           pseudo=NULL,
+#'                           transform="none")
+#'
+#' res_tempted <- tempted(datlist, r=2, smooth=1e-5)
+#' 
+#' datlist_est <- reconstruct(res_tempted, res_svd=NULL, datlist=datlist, r_reconstruct=2)
+#' vec_est <- unlist(sapply(datlist_est, function(x){x[-1,]}))
+#' vec_obs <- unlist(sapply(datlist, function(x){x[-1,]}))
+#' R2 <- 1-sum((vec_est-vec_obs)^2)/sum(vec_obs^2)
+#' R2
+#' 
+#' @export
+#' @md
+reconstruct <- function(res_tempted, res_svd=NULL, datlist=NULL, r_reconstruct = NULL){
+  n <- max(length(res_svd$datlist), length(datlist))
+  if (n==0) {
+    stop("One of res_svd or datlist needs to be feeded.")
+  }
+  datlist_est <- vector(mode='list', length=n)
+  
+  r <- length(res_tempted$Lambda)
+  if (r < r_reconstruct){
+    r_reconstruct <- min(r, r_reconstruct)
+    print("r_reconstruct is larger than the fitted rank. Used the available ranks instead.")
+  }
+  
+  rec1 <- lapply(seq(1, r_reconstruct), function(s) {
+    res_tempted$Lambda[s] * res_tempted$A_hat[, s] %o% res_tempted$B_hat[, s] %o% res_tempted$Phi[, s]
+  })
+  Yhat <- Reduce("+", rec1)
+  
+  if (!is.null(res_svd)){
+    rec2 <- lapply(seq(1, length(res_svd$lambda_tilde)), function(s) {
+      res_svd$lambda_tilde[s] * res_svd$A_tilde[, s] %o% res_svd$B_tilde[, s]
+    })
+    Ymean <- Reduce("+", rec2)
+    for (ii in 1:n){
+      datlist_est[[ii]] <- res_svd$datlist[[ii]]
+      ti <- 1 + round((length(res_tempted$time_Phi)-1) * (res_svd$datlist[[ii]][1,] - res_tempted$time_Phi[1]) / (res_tempted$time_Phi[length(res_tempted$time_Phi)] - res_tempted$time_Phi[1]))
+      datlist_est[[ii]][-1,] <- Yhat[ii,,ti] + Ymean[ii,]
+    }
+  }else{
+    for (ii in 1:n){
+      datlist_est[[ii]] <- datlist[[ii]]
+      ti <- 1 + round((length(res_tempted$time_Phi)-1) * (datlist[[ii]][1,] - res_tempted$time_Phi[1]) / (res_tempted$time_Phi[length(res_tempted$time_Phi)] - res_tempted$time_Phi[1]))
+      datlist_est[[ii]][-1,] <- Yhat[ii,,ti]
+    }
+  }
+  return(datlist_est)
+}
+
+
+
+
 #' Meta data table from the ECAM data
 #' @format A data.frame with rows representing samples and matching with data.frame \code{count_table} and \code{processed_table}
 #' and three columns:
