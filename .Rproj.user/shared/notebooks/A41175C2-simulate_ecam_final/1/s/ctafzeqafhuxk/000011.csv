@@ -1,0 +1,133 @@
+"0","rm(list=ls())
+# for data
+library(qiime2R) # read in Qiime artifacts
+"
+"2","Registered S3 method overwritten by 'data.table':
+  method           from
+  print.data.table     
+"
+"0","library(dplyr) # data formatting"
+"2","
+Attaching package: ‘dplyr’
+
+"
+"2","The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+"
+"0","# for computing"
+"0","library(reticulate) # run py codes"
+"0","library(vegan) # distance matrix"
+"2","Loading required package: permute
+"
+"2","Loading required package: lattice
+"
+"2","This is vegan 2.6-4
+"
+"0","library(PERMANOVA) # permanova"
+"2","Loading required package: Matrix
+"
+"2","Loading required package: xtable
+"
+"2","Loading required package: MASS
+"
+"2","
+Attaching package: ‘MASS’
+
+"
+"2","The following object is masked from ‘package:dplyr’:
+
+    select
+
+"
+"2","Loading required package: scales
+"
+"2","Loading required package: deldir
+"
+"2","deldir 1.0-9      Nickname: ""Partial Distinction""
+"
+"2","
+     The syntax of deldir() has changed since version 
+     0.0-10.  In particular the ""dummy points"" facility 
+     (which was a historical artifact) has been removed. 
+     In the current version, 1.0-8, an argument ""id"" has 
+     been added to deldir().  This new argument permits the 
+     user to specifier identifiers for points.  The default 
+     behaviour is to continue using the indices of the 
+     points to identify them.  In view of the fact that 
+     point identifiers may be user-supplied, the arguement 
+     ""number"", in plot.deldir() and plot.tile.list(), has 
+     had its name changed to ""labelPts"", and the argument 
+     ""nex"" in plot.deldir() has had its name changed to 
+     ""lex"".  In addition the name of the forth component 
+     of the ""cmpnt_col"" argument in plot.deldir() has been 
+     changed from ""num"" to ""labels"".  There is a new 
+     function getNbrs(), and the function tileInfo() has 
+     been modified to include output from getNbrs(). 
+     Please consult the help.
+
+"
+"2","
+Attaching package: ‘deldir’
+
+"
+"2","The following object is masked from ‘package:permute’:
+
+    getCol
+
+"
+"0","library(randomForest) # random forest"
+"2","randomForest 4.7-1.1
+"
+"2","Type rfNews() to see new features/changes/bug fixes.
+"
+"2","
+Attaching package: ‘randomForest’
+
+"
+"2","The following object is masked from ‘package:dplyr’:
+
+    combine
+
+"
+"2","The following object is masked from ‘package:ggplot2’:
+
+    margin
+
+"
+"0","library(PRROC) # roc and pr"
+"0",""
+"0","# for plotting"
+"0","library(ggpubr)"
+"2","
+Attaching package: ‘ggpubr’
+
+"
+"2","The following object is masked from ‘package:qiime2R’:
+
+    mean_sd
+
+"
+"0","library(ggplot2)"
+"0","library(gridExtra)"
+"2","
+Attaching package: ‘gridExtra’
+
+"
+"2","The following object is masked from ‘package:randomForest’:
+
+    combine
+
+"
+"2","The following object is masked from ‘package:dplyr’:
+
+    combine
+
+"
+"0","library(RColorBrewer)"
