@@ -1,6 +1,0 @@
-"0","mds_mat_Pax <- dplyr::filter(mds_mat_all, genotype!='WT')
-# result from tempted
-ratio_mat_Pax <- dplyr::filter(reshape_feat_ratio, genotype!='WT')
-"
-"2","Error: object 'reshape_feat_ratio' not found
-"
