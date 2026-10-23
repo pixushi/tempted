@@ -996,10 +996,10 @@ plot_feature_summary <- function(feature_mat, time_vec, group_vec,
       ind <- group_vec==group_level[ii]
       if(is.null(bws)){
         model_np <- npreg(feature_mat[ind,jj]~time_vec[ind],
-                          regtype="ll", bwmethod="cv.aic")
+                          regtype="ll", bwmethod="cv.aic", se=TRUE)
       }else{
         model_np <- npreg(feature_mat[ind,jj]~time_vec[ind], bws=bws,
-                          regtype="ll", bwmethod="cv.aic")
+                          regtype="ll", bwmethod="cv.aic", se=TRUE)
       }
       time_eval <- as.vector(t(model_np$eval))
       mean_eval <- model_np$mean[order(time_eval)]
