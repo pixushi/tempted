@@ -56,11 +56,11 @@ devtools::install_github("pixushi/tempted")
 ```
 
 or download the
-[tarball](https://github.com/pixushi/tempted/blob/master/tempted_0.1.0.tar.gz)
+[tarball](https://github.com/pixushi/tempted/blob/master/tempted_0.1.2.tar.gz)
 to your folder of interest and install using
 
 ``` r
-install.packages("folder_of_interest/tempted_0.1.0.tar.gz", repos = NULL, type="source")
+install.packages("folder_of_interest/tempted_0.1.2.tar.gz", repos = NULL, type="source")
 ```
 
 ## Load packages for this vignette
