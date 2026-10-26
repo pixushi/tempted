@@ -181,9 +181,9 @@ res_count <- tempted_all(count_table,
                          pct_ratio=0.1,
                          pct_aggregate=1)
 #> Calculate the 1th Component
-#> Convergence reached at dif=3.57400400849311e-05, iter=4
+#> Convergence reached at dif=3.57400412973181e-05, iter=4
 #> Calculate the 2th Component
-#> Convergence reached at dif=4.745809269163e-05, iter=7
+#> Convergence reached at dif=4.74580928288249e-05, iter=7
 ```
 
 ### Low-dimensional representation of subjects
@@ -202,7 +202,7 @@ p_subj <- ggplot(data=A_data, aes(x=A_data[,1], y=A_data[,2], color=delivery)) +
 print(p_subj)
 ```
 
-<img src="man/figures/README-plot_sub_loading-1.png" width="100%" />
+<img src="man/figures/README-plot_sub_loading-1.png" alt="" width="100%" />
 
 ### Plot the temporal loadings
 
@@ -218,7 +218,7 @@ p_time <- plot_time_loading(res_count, r=2) +
 print(p_time)
 ```
 
-<img src="man/figures/README-plot_time_loading-1.png" width="100%" />
+<img src="man/figures/README-plot_time_loading-1.png" alt="" width="100%" />
 
 ### Plot the feature loadings
 
@@ -232,20 +232,29 @@ p_feature <- ggplot(as.data.frame(res_count$B_hat), aes(x=PC1, y=PC2)) +
 print(p_feature)
 ```
 
-<img src="man/figures/README-plot_feature_loading-1.png" width="100%" />
+<img src="man/figures/README-plot_feature_loading-1.png" alt="" width="100%" />
 
 ### Plot log ratio of top features
 
 The log ratios are stored in variable `metafeature_ratio` of the
 `tempted_all()` output.
 
+The smoothed mean curves and error bands in `plot_metafeature()` and
+`plot_feature_summary()` are estimated by local linear regression with
+`np::npreg()`. The option `bws` sets the bandwidth of this smoother, in
+the same units as the time points (days in this example). A larger value
+gives a smoother curve. If `bws` is not specified, the bandwidth is
+selected automatically by `np` package through cross-validation, so the
+plots may look slightly different across different versions of package
+np. To get plots that are reproducible across versions, we recommend
+setting `bws` explicitly.
+
 ``` r
 group <- unique(meta_table[,c("studyid", "delivery")])
 plot_metafeature(res_count$metafeature_ratio, group) + xlab("Days of Life")
-#> Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   
 ```
 
-<img src="man/figures/README-plot_log_ratio-1.png" width="100%" />
+<img src="man/figures/README-plot_log_ratio-1.png" alt="" width="100%" />
 
 ### Plot subject trajectories
 
@@ -255,10 +264,9 @@ The subject trajectores are stored in `metafeature_aggregate` of the
 ``` r
 group <- unique(meta_table[,c("studyid", "delivery")])
 plot_metafeature(res_count$metafeature_aggregate, group) + xlab("Days of Life")
-#> Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   
 ```
 
-<img src="man/figures/README-plot_sub_traj-1.png" width="100%" />
+<img src="man/figures/README-plot_sub_traj-1.png" alt="" width="100%" />
 
 ### Low-dimensional representation of samples
 
@@ -287,7 +295,7 @@ p_aggfeat_scatter <- ggplot(data=reshape_feat_obs, aes(x=PC1, y=PC2,
 p_aggfeat_scatter
 ```
 
-<img src="man/figures/README-plot_aggfeat_scatter-1.png" width="100%" />
+<img src="man/figures/README-plot_aggfeat_scatter-1.png" alt="" width="100%" />
 
 ``` r
 
@@ -300,7 +308,7 @@ p_aggfeat_scatter2 <- ggplot(data=dplyr::filter(reshape_feat_obs, timepoint<365 
 p_aggfeat_scatter2
 ```
 
-<img src="man/figures/README-plot_aggfeat_scatter-2.png" width="100%" />
+<img src="man/figures/README-plot_aggfeat_scatter-2.png" alt="" width="100%" />
 
 ## Run TEMPTED for Microbiome Compositional Data (Straightforward Way)
 
@@ -322,9 +330,9 @@ res_proportion <- tempted_all(proportion_table,
                               r=2,
                               smooth=1e-5)
 #> Calculate the 1th Component
-#> Convergence reached at dif=3.57400414642375e-05, iter=4
+#> Convergence reached at dif=3.57400409564135e-05, iter=4
 #> Calculate the 2th Component
-#> Convergence reached at dif=4.7458092689688e-05, iter=7
+#> Convergence reached at dif=4.74580929979408e-05, iter=7
 ```
 
 ### Low-dimensional representation of subjects
@@ -340,7 +348,7 @@ p_subj <- ggplot(data=A_data, aes(x=A_data[,1], y=A_data[,2], color=delivery)) +
 print(p_subj)
 ```
 
-<img src="man/figures/README-plot_sub_loading2-1.png" width="100%" />
+<img src="man/figures/README-plot_sub_loading2-1.png" alt="" width="100%" />
 
 ### Plot the temporal loadings
 
@@ -351,7 +359,7 @@ p_time <- plot_time_loading(res_proportion, r=2) +
 print(p_time)
 ```
 
-<img src="man/figures/README-plot_time_loading2-1.png" width="100%" />
+<img src="man/figures/README-plot_time_loading2-1.png" alt="" width="100%" />
 
 ### Plot the feature loadings
 
@@ -362,27 +370,25 @@ pfeature <- ggplot(as.data.frame(res_proportion$B_hat), aes(x=PC1, y=PC2)) +
 print(pfeature)
 ```
 
-<img src="man/figures/README-plot_feature_loading2-1.png" width="100%" />
+<img src="man/figures/README-plot_feature_loading2-1.png" alt="" width="100%" />
 
 ### Plot log ratio of top features
 
 ``` r
 group <- unique(meta_table[,c("studyid", "delivery")])
 plot_metafeature(res_proportion$metafeature_ratio, group) + xlab("Days of Life")
-#> Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   
 ```
 
-<img src="man/figures/README-plot_log_ratio2-1.png" width="100%" />
+<img src="man/figures/README-plot_log_ratio2-1.png" alt="" width="100%" />
 
 ### Plot subject trajectories
 
 ``` r
 group <- unique(meta_table[,c("studyid", "delivery")])
 plot_metafeature(res_proportion$metafeature_aggregate, group) + xlab("Days of Life")
-#> Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   
 ```
 
-<img src="man/figures/README-plot_sub_traj2-1.png" width="100%" />
+<img src="man/figures/README-plot_sub_traj2-1.png" alt="" width="100%" />
 
 ### Low-dimensional representation of samples
 
@@ -411,7 +417,7 @@ p_aggfeat_scatter <- ggplot(data=reshape_feat_obs, aes(x=PC1, y=PC2,
 p_aggfeat_scatter
 ```
 
-<img src="man/figures/README-plot_aggfeat_scatter2-1.png" width="100%" />
+<img src="man/figures/README-plot_aggfeat_scatter2-1.png" alt="" width="100%" />
 
 ``` r
 
@@ -424,7 +430,7 @@ p_aggfeat_scatter2 <- ggplot(data=dplyr::filter(reshape_feat_obs, timepoint<365 
 p_aggfeat_scatter2
 ```
 
-<img src="man/figures/README-plot_aggfeat_scatter2-2.png" width="100%" />
+<img src="man/figures/README-plot_aggfeat_scatter2-2.png" alt="" width="100%" />
 
 ## Run TEMPTED for General Form of Multivariate Longitudinal Data (Straightforward Way)
 
@@ -445,9 +451,9 @@ res_processed <- tempted_all(processed_table,
                              smooth=1e-5,
                              do_ratio=FALSE)
 #> Calculate the 1th Component
-#> Convergence reached at dif=3.8157412154411e-05, iter=4
+#> Convergence reached at dif=3.81574123387651e-05, iter=4
 #> Calculate the 2th Component
-#> Convergence reached at dif=2.44419512850139e-05, iter=7
+#> Convergence reached at dif=2.44419513877058e-05, iter=7
 ```
 
 ### Low-dimensional representation of subjects
@@ -463,7 +469,7 @@ p_subj <- ggplot(data=A_data, aes(x=A_data[,1], y=A_data[,2], color=delivery)) +
 print(p_subj)
 ```
 
-<img src="man/figures/README-plot_sub_loading3-1.png" width="100%" />
+<img src="man/figures/README-plot_sub_loading3-1.png" alt="" width="100%" />
 
 ### Plot the temporal loadings
 
@@ -474,7 +480,7 @@ p_time <- plot_time_loading(res_processed, r=2) +
 print(p_time)
 ```
 
-<img src="man/figures/README-plot_time_loading3-1.png" width="100%" />
+<img src="man/figures/README-plot_time_loading3-1.png" alt="" width="100%" />
 
 ### Plot the feature loadings
 
@@ -485,17 +491,16 @@ pfeature <- ggplot(as.data.frame(res_processed$B_hat), aes(x=PC1, y=PC2)) +
 print(pfeature)
 ```
 
-<img src="man/figures/README-plot_feature_loading3-1.png" width="100%" />
+<img src="man/figures/README-plot_feature_loading3-1.png" alt="" width="100%" />
 
 ### Plot subject trajectories
 
 ``` r
 group <- unique(meta_table[,c("studyid", "delivery")])
 plot_metafeature(res_processed$metafeature_aggregate, group) + xlab("Days of Life")
-#> Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 |Multistart 1 of 1 /Multistart 1 of 1 |Multistart 1 of 1 |                   
 ```
 
-<img src="man/figures/README-plot_sub_traj3-1.png" width="100%" />
+<img src="man/figures/README-plot_sub_traj3-1.png" alt="" width="100%" />
 
 ### Low-dimensional representation of samples
 
@@ -520,7 +525,7 @@ p_aggfeat_scatter <- ggplot(data=reshape_feat_obs, aes(x=PC1, y=PC2,
 p_aggfeat_scatter
 ```
 
-<img src="man/figures/README-plot_aggfeat_scatter3-1.png" width="100%" />
+<img src="man/figures/README-plot_aggfeat_scatter3-1.png" alt="" width="100%" />
 
 ``` r
 
@@ -533,7 +538,7 @@ p_aggfeat_scatter2 <- ggplot(data=dplyr::filter(reshape_feat_obs, timepoint<365 
 p_aggfeat_scatter2
 ```
 
-<img src="man/figures/README-plot_aggfeat_scatter3-2.png" width="100%" />
+<img src="man/figures/README-plot_aggfeat_scatter3-2.png" alt="" width="100%" />
 
 ## Run TEMPTED in Customized Way
 
@@ -580,9 +585,9 @@ temporal loading.
 svd_tempted <- svd_centralize(datlist)
 res_tempted <- tempted(svd_tempted$datlist, r = 2, resolution = 101, smooth=1e-5)
 #> Calculate the 1th Component
-#> Convergence reached at dif=3.531461408802e-05, iter=4
+#> Convergence reached at dif=3.53146137219664e-05, iter=4
 #> Calculate the 2th Component
-#> Convergence reached at dif=4.37783267396658e-05, iter=7
+#> Convergence reached at dif=4.37783267286387e-05, iter=7
 # alternatively, you can replace the two lines above by the two lines below.
 # the 2nd and 3rd component in the result below will be 
 # similar to the 1st and 2nd component in the result above.
@@ -641,7 +646,7 @@ p_feat_obs_summary <- plot_metafeature(ratio_feat$metafeature_ratio, group, bws=
 grid.arrange(p_feat_obs, p_feat_obs_summary, nrow=2)
 ```
 
-<img src="man/figures/README-plot_ratio_traj_breakdown-1.png" width="100%" />
+<img src="man/figures/README-plot_ratio_traj_breakdown-1.png" alt="" width="100%" />
 
 ### Subject trajectories
 
@@ -678,7 +683,7 @@ p_feat_obs_summary <- plot_metafeature(agg_feat$metafeature_aggregate, group, bw
 grid.arrange(p_feat_obs, p_feat_obs_summary, nrow=2)
 ```
 
-<img src="man/figures/README-plot_sub_traj_breakdown-1.png" width="100%" />
+<img src="man/figures/README-plot_sub_traj_breakdown-1.png" alt="" width="100%" />
 
 ### Plot trajectory of top features
 
@@ -713,7 +718,7 @@ p_topfeat_summary <- plot_feature_summary(proportion_table[,feat_names],
 grid.arrange(p_topfeat, p_topfeat_summary, nrow=2)
 ```
 
-<img src="man/figures/README-plot_top_feature-1.png" width="100%" />
+<img src="man/figures/README-plot_top_feature-1.png" alt="" width="100%" />
 
 ## Transferring TEMPTED result from training to testing data
 
@@ -747,9 +752,9 @@ mean_svd_train <- svd_centralize(datlist_train, r=1)
 res_tempted_train <- tempted(mean_svd_train$datlist,
 r=2, smooth=1e-5)
 #> Calculate the 1th Component
-#> Convergence reached at dif=3.89952383939211e-05, iter=4
+#> Convergence reached at dif=3.89952377089327e-05, iter=4
 #> Calculate the 2th Component
-#> Convergence reached at dif=4.45458808530784e-05, iter=7
+#> Convergence reached at dif=4.45458806846092e-05, iter=7
 ```
 
 ### Obtain subject loading for testing subject
@@ -772,8 +777,8 @@ datlist_test <- format_tempted(count_test,
 # estimate the subject loading of the testing subject
 sub_test <- est_test_subject(datlist_test, res_tempted_train, mean_svd_train)
 sub_test
-#>           PC1       PC2
-#> 2 -0.07967744 0.1688863
+#>           PC1        PC2
+#> 2 -0.07967744 -0.1688863
 ```
 
 Here we use logistic regression to illustrate how the subject loadings
@@ -797,7 +802,7 @@ summary(glm_train)
 #>             Estimate Std. Error z value Pr(>|z|)   
 #> (Intercept)   -2.965      1.652  -1.795  0.07266 . 
 #> PC1          -11.334      9.129  -1.242  0.21440   
-#> PC2           16.865      5.529   3.050  0.00229 **
+#> PC2          -16.865      5.529  -3.050  0.00229 **
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 

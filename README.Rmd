@@ -170,6 +170,8 @@ print(p_feature)
 
 The log ratios are stored in variable `metafeature_ratio` of the `tempted_all()` output.
 
+The smoothed mean curves and error bands in `plot_metafeature()` and `plot_feature_summary()` are estimated by local linear regression with `np::npreg()`. The option `bws` sets the bandwidth of this smoother, in the same units as the time points (days in this example). A larger value gives a smoother curve. If `bws` is not specified, the bandwidth is selected automatically by `np` package through cross-validation, so the plots may look slightly different across different versions of package np. To get plots that are reproducible across versions, we recommend setting `bws` explicitly.
+
 ```{r plot_log_ratio, message=FALSE, warning=FALSE}
 group <- unique(meta_table[,c("studyid", "delivery")])
 plot_metafeature(res_count$metafeature_ratio, group) + xlab("Days of Life")
