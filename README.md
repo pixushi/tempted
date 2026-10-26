@@ -213,7 +213,7 @@ plot.
 
 ``` r
 p_time <- plot_time_loading(res_count, r=2) + 
-  geom_line(size=1.5) + 
+  geom_line(linewidth=1.5) + 
   labs(title='temporal loadings', x='days')
 print(p_time)
 ```
@@ -346,7 +346,7 @@ print(p_subj)
 
 ``` r
 p_time <- plot_time_loading(res_proportion, r=2) + 
-  geom_line(size=1.5) + 
+  geom_line(linewidth=1.5) + 
   labs(title='temporal loadings', x='days')
 print(p_time)
 ```
@@ -469,7 +469,7 @@ print(p_subj)
 
 ``` r
 p_time <- plot_time_loading(res_processed, r=2) + 
-  geom_line(size=1.5) + 
+  geom_line(linewidth=1.5) + 
   labs(title='temporal loadings', x='days')
 print(p_time)
 ```

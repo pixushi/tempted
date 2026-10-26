@@ -52,10 +52,10 @@ You can install the development version of TEMPTED from [GitHub](https://github.
 devtools::install_github("pixushi/tempted")
 ```
 
-or download the [tarball](https://github.com/pixushi/tempted/blob/master/tempted_0.1.0.tar.gz) to your folder of interest and install using 
+or download the [tarball](https://github.com/pixushi/tempted/blob/master/tempted_0.1.2.tar.gz) to your folder of interest and install using 
 
 ```{r install2, eval=FALSE}
-install.packages("folder_of_interest/tempted_0.1.0.tar.gz", repos = NULL, type="source")
+install.packages("folder_of_interest/tempted_0.1.2.tar.gz", repos = NULL, type="source")
 ```
 
 ## Load packages for this vignette
@@ -150,7 +150,7 @@ Temporal loadings are stored in variable `Phi_hat` of the `tempted_all()` output
 
 ```{r plot_time_loading, message=FALSE, warning=FALSE}
 p_time <- plot_time_loading(res_count, r=2) + 
-  geom_line(size=1.5) + 
+  geom_line(linewidth=1.5) + 
   labs(title='temporal loadings', x='days')
 print(p_time)
 ```
@@ -251,7 +251,7 @@ print(p_subj)
 
 ```{r plot_time_loading2, message=FALSE, warning=FALSE}
 p_time <- plot_time_loading(res_proportion, r=2) + 
-  geom_line(size=1.5) + 
+  geom_line(linewidth=1.5) + 
   labs(title='temporal loadings', x='days')
 print(p_time)
 ```
@@ -345,7 +345,7 @@ print(p_subj)
 
 ```{r plot_time_loading3, message=FALSE, warning=FALSE}
 p_time <- plot_time_loading(res_processed, r=2) + 
-  geom_line(size=1.5) + 
+  geom_line(linewidth=1.5) + 
   labs(title='temporal loadings', x='days')
 print(p_time)
 ```
