@@ -70,14 +70,9 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
                     maxiter=20, epsilon=1e-4){
   # a function to iteratively update phi
   freg_rkhs <- function(Ly, a_hat, ind_vec, Kmat, Kmat_output, smooth=1e-8){
-    A <- Kmat
-    for (i in 1:length(Ly)){
-      A[ind_vec==i,] <- A[ind_vec==i,]*a_hat[i]^2
-    }
+    K <- Kmat * a_hat[ind_vec]^2
     cvec <- unlist(Ly)
-
-    A_temp <- A + smooth*diag(ncol(A))
-    beta <- solve(A_temp)%*%cvec
+    beta <- solve(K + diag(smooth, ncol(K)), cvec)
 
     phi_est <- Kmat_output %*% beta
     return(phi_est)
