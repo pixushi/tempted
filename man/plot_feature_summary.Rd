@@ -26,7 +26,10 @@ of samples matched to the rows of \code{feature_mat}.}
 
 \item{bws}{The smoothness parameter for the smoothing lines and error bands.
 A larger value means a smoother line.
-Default is NULL and calculated by function \code{np::npreg()}.}
+A single value of \code{bws} is used for all features and groups.
+Default is NULL, in which case a bandwidth is selected for each feature and group
+by cross-validation using \code{np::npregbw()}, and their median is used for all curves.
+The selected bandwidths and their median are printed as a message.}
 
 \item{nrow}{The number of rows to plot the features used in function \code{ggplot2::facet_wrap()}.}
 }

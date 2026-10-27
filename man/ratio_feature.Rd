@@ -80,5 +80,5 @@ plot_metafeature(res_ratio$metafeature_ratio, group, bws=30)
 }
 }
 \references{
-Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
+Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2024) \emph{TEMPTED: time-informed dimensionality reduction for longitudinal microbiome studies}. Genome Biology, 25, 317. \doi{10.1186/s13059-024-03453-x}.
 }

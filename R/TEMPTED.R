@@ -229,16 +229,25 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
       A[,r] <- -A[,r]
     }
   }
+  # sign of each column: sign of the column sum, or, when the column sum is zero
+  # up to rounding errors (e.g., feature loadings of clr-transformed data),
+  # sign of the entry with the largest absolute value
+  col_sign <- function(M){
+    s <- colSums(M)
+    tiny <- abs(s) <= 1e-8 * colSums(abs(M))
+    s[tiny] <- M[cbind(apply(abs(M), 2, which.max), seq_len(ncol(M)))][tiny]
+    sgn <- sign(s)
+    sgn[sgn==0] <- 1
+    sgn
+  }
   # revise the signs to make sure summation of phi is nonnegative
-  sgn.phi <- sign(colSums(Phi))
-  sgn.phi[sgn.phi==0] <- 1
+  sgn.phi <- col_sign(Phi)
   for (r in 1:ncol(Phi)){
     Phi[,r] <- sgn.phi[r]*Phi[,r]
     A[,r] <- sgn.phi[r]*A[,r]
   }
   # revise the signs to make sure summation of B is nonnegative
-  sgn.B <- sign(colSums(B))
-  sgn.B[sgn.B==0] <- 1
+  sgn.B <- col_sign(B)
   for (r in 1:ncol(Phi)){
     B[,r] <- sgn.B[r]*B[,r]
     A[,r] <- sgn.B[r]*A[,r]
@@ -270,7 +279,7 @@ tempted <- function(datlist, r = 3, smooth=1e-6,
 #'   \item{lambda_tilde}{The singular value of the mean structure, a length r vector.}
 #' }
 #' @references
-#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
+#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2024) \emph{TEMPTED: time-informed dimensionality reduction for longitudinal microbiome studies}. Genome Biology, 25, 317. \doi{10.1186/s13059-024-03453-x}.
 #' @seealso Examples can be found in \code{\link{tempted}}.
 #' @export
 #' @md
@@ -447,7 +456,7 @@ tdenoise <- function(res_tempted, mean_svd=NULL){
 #' @param mean_svd Result from \code{\link{svd_centralize}} ran on the training data.
 #' @return estimated subject loading of testing data
 #' @references
-#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
+#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2024) \emph{TEMPTED: time-informed dimensionality reduction for longitudinal microbiome studies}. Genome Biology, 25, 317. \doi{10.1186/s13059-024-03453-x}.
 #' @examples
 #' # Take a subset of the samples so the example runs faster
 #'
@@ -581,7 +590,7 @@ est_test_subject <- function(datlist, res_tempted, mean_svd=NULL){
 #'   \item{toppct}{A matrix of TRUE/FALSE indicating which features are aggregated in each component and contrast.}
 #' }
 #' @references
-#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
+#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2024) \emph{TEMPTED: time-informed dimensionality reduction for longitudinal microbiome studies}. Genome Biology, 25, 317. \doi{10.1186/s13059-024-03453-x}.
 #' @examples
 #' # Take a subset of the samples so the example runs faster
 #'
@@ -687,7 +696,7 @@ aggregate_feature <- function(res_tempted, mean_svd=NULL, datlist,
 #'   \item{bottompct}{A matrix of TRUE/FALSE indicating which features are ranked bottom in each component (and contrast) and used as the denominator of the log ratio.}
 #' }
 #' @references
-#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
+#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2024) \emph{TEMPTED: time-informed dimensionality reduction for longitudinal microbiome studies}. Genome Biology, 25, 317. \doi{10.1186/s13059-024-03453-x}.
 #' @examples
 #' # Take a subset of the samples so the example runs faster
 #'
@@ -851,7 +860,7 @@ ratio_feature <- function(res_tempted, datlist,
 #'   \item{contrast}{The contrast used to linearly combine the components from input.}
 #' }
 #' @references
-#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2023) \emph{Time-Informed Dimensionality Reduction for Longitudinal Microbiome Studies}. bioRxiv. doi: 10.1101/550749. \url{https://www.biorxiv.org/content/10.1101/550749}.
+#' Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R, Shenhav L, Zhang AR. (2024) \emph{TEMPTED: time-informed dimensionality reduction for longitudinal microbiome studies}. Genome Biology, 25, 317. \doi{10.1186/s13059-024-03453-x}.
 #' @examples
 #' # Take a subset of the samples so the example runs faster
 #'
@@ -958,7 +967,10 @@ tempted_all <- function(featuretable, timepoint, subjectID,
 #' @param coverage The coverage rate for the error band. Default is 0.95.
 #' @param bws The smoothness parameter for the smoothing lines and error bands.
 #' A larger value means a smoother line.
-#' Default is NULL and calculated by function \code{np::npreg()}.
+#' A single value of \code{bws} is used for all features and groups.
+#' Default is NULL, in which case a bandwidth is selected for each feature and group
+#' by cross-validation using \code{np::npregbw()}, and their median is used for all curves.
+#' The selected bandwidths and their median are printed as a message.
 #' @param nrow The number of rows to plot the features used in function \code{ggplot2::facet_wrap()}.
 #' @return A ggplot2 object.
 #' @examples
@@ -986,16 +998,26 @@ plot_feature_summary <- function(feature_mat, time_vec, group_vec,
   group_all <- NULL
   if(is.null(colnames(feature_mat))){stop('feature_mat needs to have column names!')}
   CI_length <- -qnorm((1-coverage)/2)
+  if(is.null(bws)){
+    bw_all <- matrix(NA, nfeature, length(group_level),
+                     dimnames=list(colnames(feature_mat), group_level))
+    for (jj in 1:nfeature){
+      for (ii in 1:length(group_level)){
+        ind <- group_vec==group_level[ii]
+        bw_all[jj,ii] <- npregbw(feature_mat[ind,jj]~time_vec[ind],
+                                 regtype="ll", bwmethod="cv.aic")$bw
+      }
+    }
+    bws <- median(bw_all)
+    message("Bandwidths selected by cross-validation for each curve:\n",
+            paste(capture.output(print(signif(bw_all, 4))), collapse="\n"),
+            "\nThe median bandwidth bws=", signif(bws, 4), " is used for all curves.")
+  }
   for (jj in 1:nfeature){
     for (ii in 1:length(group_level)){
       ind <- group_vec==group_level[ii]
-      if(is.null(bws)){
-        model_np <- npreg(feature_mat[ind,jj]~time_vec[ind],
-                          regtype="ll", bwmethod="cv.aic", se=TRUE)
-      }else{
-        model_np <- npreg(feature_mat[ind,jj]~time_vec[ind], bws=bws,
-                          regtype="ll", bwmethod="cv.aic", se=TRUE)
-      }
+      model_np <- npreg(feature_mat[ind,jj]~time_vec[ind], bws=bws,
+                        regtype="ll", bwmethod="cv.aic", se=TRUE)
       time_eval <- as.vector(t(model_np$eval))
       mean_eval <- model_np$mean[order(time_eval)]
       merr_eval <- model_np$merr[order(time_eval)]
@@ -1037,7 +1059,10 @@ plot_feature_summary <- function(feature_mat, time_vec, group_vec,
 #' @param coverage The coverage rate for the error band. Default is 0.95.
 #' @param bws The smoothness parameter for the smoothing lines and error bands.
 #' A larger value means a smoother line.
-#' Default is NULL and calculated by function \code{np::npreg()}.
+#' A single value of \code{bws} is used for all features and groups.
+#' Default is NULL, in which case a bandwidth is selected for each feature and group
+#' by cross-validation using \code{np::npregbw()}, and their median is used for all curves.
+#' The selected bandwidths and their median are printed as a message.
 #' @param nrow The number of rows to plot the features used in function \code{ggplot2::facet_wrap()}.
 #' @return A ggplot2 object.
 #' @seealso Examples can be found in \code{\link{tempted_all}}, \code{\link{ratio_feature}} and \code{\link{aggregate_feature}}.

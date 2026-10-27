@@ -1,5 +1,6 @@
 TEMPTED Vignette
 ================
+2026-10-27
 
 ## Introduction of TEMPTED
 
@@ -11,30 +12,41 @@ TEMPTED is to perform dimensionality reduction for multivariate
 longitudinal data, with a special attention to longitudinal mirobiome
 studies.
 
-**Package dependencies:** R (\>= 4.2.0), np (\>= 0.60-17), ggplot2 (\>=
-3.4.0), methods (\>= 4.2.1).
-
 **Run time** for all the example codes in this demo was within one
 minute on a MacBook Pro with 2.3 GHz Intel Core i7 processor. You may
 expect longer run time if you have more subjects or more features.
 
-You can **cite this paper** for using TEMPTED:
+- **Citation:** You can cite this paper for using TEMPTED: Shi P,
+  Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight R,
+  Shenhav L, Zhang AR. [TEMPTED: time-informed dimensionality reduction
+  for longitudinal microbiome studies. Genome Biology 25, 317
+  (2024).](https://doi.org/10.1186/s13059-024-03453-x) The statistical
+  theories behind TEMPTED can be found in this paper: Han R, Shi P,
+  Zhang AR. [Guaranteed Functional Tensor Singular Value Decomposition.
+  Journal of the American Statistical Association (2023):
+  1-13.](https://www.tandfonline.com/doi/full/10.1080/01621459.2022.2153689)
+- **Python and Qiime2:** TEMPTED is also implemented in Python through
+  the Python package `gemelli` and as a plugin of Qiime2. It can be
+  installed through `pip install gemelli`. [Documentation for
+  `gemelli`.](https://github.com/biocore/gemelli/tree/jointrpca)
 
-Shi P, Martino C, Han R, Janssen S, Buck G, Serrano M, Owzar K, Knight
-R, Shenhav L, Zhang AR. [Time-Informed Dimensionality Reduction for
-Longitudinal Microbiome Studies.
-bioRxiv.](https://www.biorxiv.org/content/10.1101/2023.07.26.550749v1)
+### Version updates in 0.1.2
 
-The statistical theories behind TEMPTED can be found in this paper:
-
-Han R, Shi P, Zhang AR. [Guaranteed Functional Tensor Singular Value
-Decomposition. Journal of the American Statistical Association (2023):
-1-13.](https://www.tandfonline.com/doi/full/10.1080/01621459.2022.2153689)
-
-TEMPTED is also **implemented in Python** through the Python package
-`gemelli` and as a plugin of Qiime2. It can be installed through
-`pip install gemelli`. [Documentation for
-`gemelli`.](https://github.com/biocore/gemelli/tree/jointrpca)
+- **Faster computation:** The optimization in `tempted()` is faster,
+  especially for data with many samples. The results are unchanged.
+- **Consistent signs:** When the feature loadings of a component sum to
+  zero, as is the case for clr-transformed data, the sign of the
+  component is now determined by the feature with the largest absolute
+  loading. Previously, the sign could flip across computers due to
+  rounding errors.
+- **Corrected smoothing:** A typo in the call to `np::npreg()` in
+  `plot_feature_summary()` and `plot_metafeature()` was corrected, so
+  the smoothed curves now use local linear regression as intended.
+- **Reproducible bandwidth:** When `bws` is not specified,
+  `plot_feature_summary()` and `plot_metafeature()` now select a
+  bandwidth for each curve by cross-validation, use their median for all
+  curves, and print the selected bandwidths. Setting `bws` to the
+  printed median reproduces the plot.
 
 ## Installation
 
@@ -246,7 +258,7 @@ the same units as the time points (days in this example). A larger value
 gives a smoother curve. If `bws` is not specified, the bandwidth is
 selected automatically by `np` package through cross-validation, so the
 plots may look slightly different across different versions of package
-np. To get plots that are reproducible across versions, we recommend
+`np`. To get plots that are reproducible across versions, we recommend
 setting `bws` explicitly.
 
 ``` r
@@ -777,8 +789,8 @@ datlist_test <- format_tempted(count_test,
 # estimate the subject loading of the testing subject
 sub_test <- est_test_subject(datlist_test, res_tempted_train, mean_svd_train)
 sub_test
-#>           PC1        PC2
-#> 2 -0.07967744 -0.1688863
+#>          PC1        PC2
+#> 2 0.07967744 -0.1688863
 ```
 
 Here we use logistic regression to illustrate how the subject loadings
@@ -801,7 +813,7 @@ summary(glm_train)
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)   
 #> (Intercept)   -2.965      1.652  -1.795  0.07266 . 
-#> PC1          -11.334      9.129  -1.242  0.21440   
+#> PC1           11.334      9.129   1.242  0.21440   
 #> PC2          -16.865      5.529  -3.050  0.00229 **
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
