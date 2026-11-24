@@ -31,6 +31,10 @@ This is a vignette for the R package `tempted`, which implements the statistical
 -   **Corrected smoothing:** A typo in the call to `np::npreg()` in `plot_feature_summary()` and `plot_metafeature()` was corrected, so the smoothed curves now use local linear regression as intended.
 -   **Reproducible bandwidth:** When `bws` is not specified, `plot_feature_summary()` and `plot_metafeature()` now select a bandwidth for each curve by cross-validation, use their median for all curves, and print the selected bandwidths. Setting `bws` to the printed median reproduces the plot.
 
+## Related Package
+
+- **multiTEMPTED:** For multi-omic longitudinal studies, the R package [`multi.tempted`](https://github.com/loulind/multi.tempted) extends TEMPTED to analyze several longitudinal omic datasets jointly. It estimates subject loadings shared across data types, as well as feature loadings and temporal loadings for each data type. The method is described in this paper: Lindsley L, Settle A, Shi P (2026). [multiTEMPTED: Joint Dimensionality Reduction of Longitudinal Multi-omic Data with Modality-Specific Temporal Dynamics.](https://www.biorxiv.org/content/10.64898/2026.09.01.748608v1) Frontiers in Cellular and Infection Microbiology, in press.
+
 ## Installation
 
 You can directly install TEMPTED from CRAN by 
